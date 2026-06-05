@@ -2,8 +2,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '/models/models.dart';
-import 'screens.dart' show LijeLogo; // only the logo widget
+import 'package:lije/models/models.dart';
+import 'package:lije/screens/screens.dart' show LijeLogo;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LOCAL DESIGN TOKENS  (blue palette — keeps screens visually distinct)

@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import '../models/models.dart';
 import 'package:lije/screens/during_pregnancy_screen.dart';
 import 'package:lije/screens/pregnancy_calculation_screen.dart';
+import 'package:lije/screens/after_birth_screen.dart';
 import 'package:lije/screens/navs/discover.dart';
 import 'package:lije/screens/navs/doctors.dart';
 import 'package:lije/screens/navs/profile.dart';
@@ -88,7 +89,7 @@ class _MainShellState extends State<MainShell> {
           HomeTab(),
           DoctorsTab(),
           DiscoverTab(),
-          ProfileTab(),
+          SettingsTab(),
         ]),
         bottomNavigationBar: _BottomNav(
           currentIndex: _idx,
@@ -125,9 +126,9 @@ class _BottomNav extends StatelessWidget {
         LS.get(lang, 'discover')
       ),
       (
-        Icons.person_rounded,
-        Icons.person_outline_rounded,
-        LS.get(lang, 'profile')
+        Icons.settings_rounded,
+        Icons.settings_outlined,
+        LS.get(lang, 'settings')
       ),
     ];
     return Container(
@@ -324,7 +325,7 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
-  late final AnimationController _entrance, _pulse, _shimmer, _float, _marquee;
+  late final AnimationController _entrance, _pulse, _shimmer, _float;
   late final Animation<double> _hFade, _bFade, _pulseAnim;
   late final Animation<Offset> _hSlide, _bSlide;
 
@@ -358,9 +359,6 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
     _float = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 3200))
       ..repeat(reverse: true);
-    _marquee =
-        AnimationController(vsync: this, duration: const Duration(seconds: 22))
-          ..repeat();
   }
 
   @override
@@ -369,7 +367,6 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
     _pulse.dispose();
     _shimmer.dispose();
     _float.dispose();
-    _marquee.dispose();
     super.dispose();
   }
 
@@ -406,8 +403,6 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                       child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _marqueeBar(lang),
-                            const SizedBox(height: 14),
                             _couponCard(lang),
                             const SizedBox(height: 14),
                             _heroBanner(lang),
@@ -417,12 +412,6 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                             _categoryGrid(context, lang),
                             const SizedBox(height: 20),
                             _pregnancyCard(lang),
-                            const SizedBox(height: 16),
-                            _weekHighlight(lang),
-                            const SizedBox(height: 16),
-                            _tipCard(lang),
-                            const SizedBox(height: 16),
-                            _appointmentCard(lang),
                             const SizedBox(height: 16),
                             _doctorCard(lang),
                             const SizedBox(height: 16),
@@ -575,41 +564,6 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                   decoration: const BoxDecoration(
                       color: C.coral, shape: BoxShape.circle))),
       ]);
-
-  // ── MARQUEE ────────────────────────────────────────────────────────────────
-  Widget _marqueeBar(AppLang lang) => SizedBox(
-        height: 32,
-        child: Container(
-          decoration: BoxDecoration(
-              color: C.frost, borderRadius: BorderRadius.circular(8)),
-          clipBehavior: Clip.hardEdge,
-          child: AnimatedBuilder(
-              animation: _marquee,
-              builder: (_, __) {
-                const charW = 6.0;
-                final baseText = LS.get(lang, 'marqueeText');
-                final segW =
-                    (baseText.length * charW).clamp(1.0, double.infinity);
-                final totalW = segW * 4;
-                final offset = (_marquee.value * totalW) % segW;
-                return ClipRect(
-                    child: OverflowBox(
-                  maxWidth: double.infinity,
-                  alignment: Alignment.centerLeft,
-                  child: Transform.translate(
-                      offset: Offset(-offset, 0),
-                      child: Text(baseText * 8,
-                          style: const TextStyle(
-                              fontSize: 11,
-                              color: C.mid,
-                              fontWeight: FontWeight.w600),
-                          softWrap: false,
-                          overflow: TextOverflow.clip,
-                          maxLines: 1)),
-                ));
-              }),
-        ),
-      );
 
   Widget _couponCard(AppLang lang) => Container(
         decoration: BoxDecoration(
@@ -792,11 +746,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
           LS.get(lang, 'pregnancyCalc'),
           LS.get(lang, 'pregnancyCalcSub'),
           const [C.darkBlue, C.darkBlue],
-          () => _navigateTo(
-              ctx,
-              ScreenShell(
-                  title: LS.get(lang, 'pregnancyCalc').replaceAll('\n', ' '),
-                  body: const _ComingSoonBody()))),
+          () => _navigateTo(ctx, const PregnancyCalculationScreen())),
       _CatData(
           '🤰',
           LS.get(lang, 'duringPregnancy'),
@@ -808,11 +758,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
           LS.get(lang, 'afterBirth'),
           LS.get(lang, 'afterBirthSub'),
           const [C.darkBlue, C.darkBlue],
-          () => _navigateTo(
-              ctx,
-              ScreenShell(
-                  title: LS.get(lang, 'afterBirth').replaceAll('\n', ' '),
-                  body: const _ComingSoonBody()))),
+          () => _navigateTo(ctx, const AfterBirthScreen())),
       _CatData(
           '🩺',
           LS.get(lang, 'talkDoctor'),

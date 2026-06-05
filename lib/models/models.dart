@@ -91,7 +91,15 @@ abstract class C {
   static const List<Color> cardGrad = [darkBlue, darkBlue];
   static const List<Color> navGrad = [darkBlue, darkBlue];
   static const List<Color> heroGrad = [darkBlue, darkBlue];
-  
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EXTERNAL LINKS
+// ─────────────────────────────────────────────────────────────────────────────
+abstract class AppLinks {
+  static const privacyPolicy = 'https://lije.app/privacy';
+  static const termsOfService = 'https://lije.app/terms';
+  static const supportEmail = 'mailto:support@lije.app';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -120,7 +128,8 @@ class LS {
       'categories': 'Categories',
       'shop': 'Shop',
       'discover': 'Discover',
-      'profile': 'Profile',
+      'settings': 'Settings',
+      'profile': 'Settings',
       'searchHint': 'Search tips, doctors…',
       'selectSection': 'Quick Access',
 
@@ -179,7 +188,37 @@ class LS {
       'discoverSearchHint': 'Search tips and articles…',
       'discoverEmpty': 'No articles found. Try another search or category.',
       'minRead': 'min read',
-      'profileTitle': 'Profile',
+      'profileTitle': 'Settings',
+      'aboutUs': 'About Us',
+      'termsOfService': 'Terms of Service',
+      'privacyPolicy': 'Privacy Policy',
+      'appPreferences': 'App Preferences',
+      'languageSetting': 'Language',
+      'notificationsSetting': 'Notifications',
+      'notificationsDesc': 'Pregnancy reminders and app updates',
+      'settingsGeneral': 'General',
+      'settingsLegal': 'Legal & Support',
+      'settingsVersion': 'Version',
+      'aboutTagline': 'Pregnancy & Child Growth',
+      'aboutBody':
+          'Lije helps Ethiopian mothers track pregnancy, connect with doctors, and access trusted guides from conception through early childhood.',
+      'aboutMission': 'Our Mission',
+      'aboutMissionBody':
+          'To give every family access to clear, compassionate health information and quality maternal care — in Amharic, Afaan Oromo, and English.',
+      'helpTitle': 'How can we help?',
+      'helpCenter': 'Help Center',
+      'helpContact': 'Contact Support',
+      'helpEmail': 'support@lije.app',
+      'helpFaq1Q': 'How do I track my pregnancy?',
+      'helpFaq1A':
+          'Use the Pregnancy Calculator on the home screen to enter your last period or ultrasound date. Your progress updates automatically.',
+      'helpFaq2Q': 'How do I book a doctor?',
+      'helpFaq2A':
+          'Open the Doctors tab, browse available specialists, and tap bookConsult on any doctor card.',
+      'helpFaq3Q': 'Can I change the app language?',
+      'helpFaq3A':
+          'Yes. Use the language dropdown on the home screen header or go to Settings → App Preferences.',
+      'urlOpenError': 'Could not open link. Please try again.',
       'comingSoon': 'Coming Soon',
       'comingSoonDesc': 'This section is under development.\nStay tuned!',
 
@@ -257,7 +296,8 @@ class LS {
       'categories': 'ምድቦች',
       'shop': 'ሱቅ',
       'discover': 'ፈልግ',
-      'profile': 'መገለጫ',
+      'settings': 'ቅንብሮች',
+      'profile': 'ቅንብሮች',
       'searchHint': 'ምክር ወይም ዶክተር ይፈልጉ…',
       'selectSection': 'ፈጣን ድረስ',
 
@@ -381,7 +421,8 @@ class LS {
       'categories': 'Kutaalee',
       'shop': 'Gabaa',
       'discover': 'Barbaadi',
-      'profile': 'Eenyummaa',
+      'settings': 'Qindaa\'ina',
+      'profile': 'Qindaa\'ina',
       'searchHint': 'Gorsa, doktora barbaadi…',
       'selectSection': 'Karaa Saffisaa',
 
@@ -502,21 +543,6 @@ class LS {
           '🏥 Saantoo hospitaalaa guuti. Mallattoo dhalootaa beeki. Gama bitaa ciisi.',
       'tipOverdue':
           '⏰ Guyyaan dhalootaa darbee jira. Dokitara kee har\'a qunnamti.',
-      'personalInfo': 'Personal Information',
-      'settings': 'Settings',
-      'support': 'Support & Feedback',
-      'logout': 'Logout',
-      'editProfile': 'Edit Profile',
-      'myRecords': 'My Records',
-      'reminders': 'Reminders',
-      'privacy': 'Privacy Policy',
-      'helpCenter': 'Help Center',
-      'findDoctor': 'Find a Specialist',
-      'expYears': 'years exp',
-      'etb': 'ETB',
-      'bookConsult': 'Book Consultation',
-      'doctorBio': 'About Doctor',
-      'ratings': 'Ratings',
     },
   };
 }

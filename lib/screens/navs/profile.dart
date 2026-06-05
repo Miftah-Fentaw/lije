@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/models.dart';
+import 'settings_screens.dart';
 
-class ProfileTab extends StatelessWidget {
-  const ProfileTab({super.key});
+class SettingsTab extends StatelessWidget {
+  const SettingsTab({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -11,185 +12,242 @@ class ProfileTab extends StatelessWidget {
       valueListenable: langNotifier,
       builder: (_, lang, __) => Scaffold(
         backgroundColor: C.bgPage,
-        body: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            _buildAppBar(lang),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 8),
+              Text(
+                LS.get(lang, 'settings'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: C.darkBlue,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
                   children: [
-                    _buildSection(
-                      context,
-                      title: LS.get(lang, 'settings'),
-                      items: [
-                        _ProfileItem(
-                          icon: Icons.settings_outlined,
-                          title: LS.get(lang, 'settings'),
-                          color: Colors.blueGrey,
-                        ),
-                        _ProfileItem(
-                          icon: Icons.lock_outline_rounded,
-                          title: 'Privacy & Policy',
-                          color: Colors.teal,
-                        ),
-                        _ProfileItem(
-                          icon: Icons.info_outline_rounded,
-                          title: 'About Us',
-                          color: C.navy,
-                        ),
-                        _ProfileItem(
-                          icon: Icons.description_outlined,
-                          title: 'Terms of Service',
-                          color: C.mid,
-                        ),
-                        _ProfileItem(
-                          icon: Icons.help_outline_rounded,
-                          title: LS.get(lang, 'helpCenter'),
-                          color: Colors.orange,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 40),
+                    _headerCard(lang),
+                    const SizedBox(height: 20),
+                    _sectionLabel(LS.get(lang, 'settingsGeneral')),
+                    _menuCard(context, lang, [
+                      _MenuItem(
+                        icon: Icons.tune_rounded,
+                        title: LS.get(lang, 'settings'),
+                        onTap: () => _push(context, const AppSettingsScreen()),
+                      ),
+                      _MenuItem(
+                        icon: Icons.info_outline_rounded,
+                        title: LS.get(lang, 'aboutUs'),
+                        onTap: () => _push(context, const AboutScreen()),
+                      ),
+                      _MenuItem(
+                        icon: Icons.help_outline_rounded,
+                        title: LS.get(lang, 'helpCenter'),
+                        onTap: () => _push(context, const HelpCenterScreen()),
+                      ),
+                    ]),
+                    const SizedBox(height: 20),
+                    _sectionLabel(LS.get(lang, 'settingsLegal')),
+                    _menuCard(context, lang, [
+                      _MenuItem(
+                        icon: Icons.lock_outline_rounded,
+                        title: LS.get(lang, 'privacyPolicy'),
+                        onTap: () => launchExternalUrl(
+                            context, AppLinks.privacyPolicy, lang),
+                        external: true,
+                      ),
+                      _MenuItem(
+                        icon: Icons.description_outlined,
+                        title: LS.get(lang, 'termsOfService'),
+                        onTap: () => launchExternalUrl(
+                            context, AppLinks.termsOfService, lang),
+                        external: true,
+                      ),
+                    ]),
+                    const SizedBox(height: 32),
                     Text(
-                      'Lije v1.0.0',
-                      style: TextStyle(
-                        color: C.textLight.withOpacity(0.5),
+                      '${LS.get(lang, 'appName')} v1.0.0',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: C.textLight,
                         fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAppBar(AppLang lang) {
-    return SliverAppBar(
-      expandedHeight: 0,
-      floating: true,
-      pinned: true,
-      elevation: 0,
-      centerTitle: true,
-      backgroundColor: Colors.white,
-      systemOverlayStyle: SystemUiOverlayStyle.dark,
-      title: Text(
-        LS.get(lang, 'profile'),
-        style: const TextStyle(
-          color: C.navy,
-          fontSize: 20,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-    );
-  }
-
-
-  Widget _buildSection(BuildContext context,
-      {required String title, required List<_ProfileItem> items}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Text(
-            title,
-            style: const TextStyle(
-              color: C.mid,
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: C.navy.withOpacity(0.03),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
             ],
           ),
-          child: ListView.separated(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: items.length,
-            separatorBuilder: (_, __) => Divider(
-              height: 1,
-              indent: 54,
-              endIndent: 16,
-              color: C.pale.withOpacity(0.5),
-            ),
-            itemBuilder: (_, i) => _buildListTile(context, items[i]),
-          ),
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildListTile(BuildContext context, _ProfileItem item) {
+  Widget _headerCard(AppLang lang) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: C.darkBlue,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: C.white,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            padding: const EdgeInsets.all(6),
+            child: Image.asset(
+              'lib/assets/lije_logo.png',
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) =>
+                  const Icon(Icons.favorite_rounded, color: C.darkBlue),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  LS.get(lang, 'appName'),
+                  style: const TextStyle(
+                    color: C.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  LS.get(lang, 'aboutTagline'),
+                  style: TextStyle(
+                    color: C.white.withOpacity(0.75),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionLabel(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(
+        title.toUpperCase(),
+        style: const TextStyle(
+          color: C.textLight,
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.8,
+        ),
+      ),
+    );
+  }
+
+  Widget _menuCard(BuildContext context, AppLang lang, List<_MenuItem> items) {
+    return Container(
+      decoration: BoxDecoration(
+        color: C.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: C.lightBlue),
+      ),
+      child: Column(
+        children: List.generate(items.length * 2 - 1, (i) {
+          if (i.isOdd) {
+            return Divider(
+              height: 1,
+              indent: 70,
+              endIndent: 16,
+              color: C.lightBlue,
+            );
+          }
+          final item = items[i ~/ 2];
+          return _buildTile(context, item);
+        }),
+      ),
+    );
+  }
+
+  Widget _buildTile(BuildContext context, _MenuItem item) {
     return InkWell(
-      onTap: () => HapticFeedback.lightImpact(),
-      borderRadius: BorderRadius.circular(24),
+      onTap: () {
+        HapticFeedback.lightImpact();
+        item.onTap();
+      },
+      borderRadius: BorderRadius.circular(16),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
             Container(
-              width: 38,
-              height: 38,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
-                color: item.color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: C.lightBlue,
+                borderRadius: BorderRadius.circular(11),
               ),
-              child: Icon(item.icon, color: item.color, size: 20),
+              child: Icon(item.icon, color: C.darkBlue, size: 20),
             ),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
                 item.title,
                 style: const TextStyle(
-                  color: C.navy,
+                  color: C.darkBlue,
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ),
-            if (item.showArrow)
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 14,
-                color: C.textLight.withOpacity(0.4),
-              ),
+            Icon(
+              item.external
+                  ? Icons.open_in_new_rounded
+                  : Icons.arrow_forward_ios_rounded,
+              size: item.external ? 18 : 14,
+              color: C.textLight.withOpacity(0.5),
+            ),
           ],
         ),
       ),
     );
   }
+
+  void _push(BuildContext context, Widget page) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => page),
+    );
+  }
 }
 
-class _ProfileItem {
+class _MenuItem {
   final IconData icon;
   final String title;
-  final Color color;
-  final bool showArrow;
+  final VoidCallback onTap;
+  final bool external;
 
-  _ProfileItem({
+  _MenuItem({
     required this.icon,
     required this.title,
-    required this.color,
-    this.showArrow = true,
+    required this.onTap,
+    this.external = false,
   });
 }
+
+// Keep alias so existing imports keep working
+typedef ProfileTab = SettingsTab;

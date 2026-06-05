@@ -89,7 +89,7 @@ class _MainShellState extends State<MainShell> {
           HomeTab(),
           DoctorsTab(),
           DiscoverTab(),
-          ProfileTab(),
+          SettingsTab(),
         ]),
         bottomNavigationBar: _BottomNav(
           currentIndex: _idx,
@@ -126,9 +126,9 @@ class _BottomNav extends StatelessWidget {
         LS.get(lang, 'discover')
       ),
       (
-        Icons.person_rounded,
-        Icons.person_outline_rounded,
-        LS.get(lang, 'profile')
+        Icons.settings_rounded,
+        Icons.settings_outlined,
+        LS.get(lang, 'settings')
       ),
     ];
     return Container(
