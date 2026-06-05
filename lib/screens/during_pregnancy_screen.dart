@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:lije/models/models.dart';
-import 'package:lije/screens/screens.dart' show LijeLogo;
+import 'package:lije/screens/widgets/feature_app_bar.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LOCAL DESIGN TOKENS  (mapped to app theme)
@@ -846,78 +846,22 @@ class _DPSState extends State<DuringPregnancyScreen>
                         CustomPaint(painter: _BubblePainter(_bubCtrl.value)))),
             SafeArea(
                 child: Column(children: [
-              _topBar(),
+              FeatureAppBar(
+                title: _t('screenTitle'),
+                trailing: _hasDate
+                    ? [
+                        FeatureGlassIconBtn(
+                          onTap: _pickDate,
+                          child: const Icon(Icons.edit_calendar_rounded,
+                              color: C.darkBlue, size: 18),
+                        ),
+                      ]
+                    : null,
+              ),
               Expanded(child: _hasDate ? _mainContent() : _heroSetup()),
             ])),
           ]),
         ),
-      );
-
-  // ── TOP BAR ────────────────────────────────────────────────────────────────
-  Widget _topBar() => Container(
-        decoration: BoxDecoration(
-          color: _B.navy,
-          boxShadow: [
-            BoxShadow(
-                color: _B.navy.withOpacity(0.15),
-                blurRadius: 12,
-                offset: const Offset(0, 4))
-          ],
-        ),
-        child: SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(6, 8, 14, 14),
-              child: Row(children: [
-                IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                        color: Colors.white, size: 18),
-                    padding: const EdgeInsets.all(8),
-                    constraints: const BoxConstraints()),
-                const LijeLogo(size: 36),
-                const SizedBox(width: 10),
-                Expanded(
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                      Text(_t('screenTitle'),
-                          style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1),
-                      if (_hasDate)
-                        Text('$_trimLabel  •  ${_t('week')} $_weeks+$_days',
-                            style: const TextStyle(
-                                fontSize: 10, color: Colors.white60),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1),
-                    ])),
-                if (_hasDate)
-                  GestureDetector(
-                    onTap: _pickDate,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(.18),
-                          borderRadius: BorderRadius.circular(11)),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        const Icon(Icons.edit_calendar_rounded,
-                            color: Colors.white, size: 14),
-                        const SizedBox(width: 4),
-                        Text(_t('edit'),
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700)),
-                      ]),
-                    ),
-                  ),
-              ]),
-            )),
       );
 
   // ── HERO SETUP (no date yet) ───────────────────────────────────────────────

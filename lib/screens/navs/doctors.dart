@@ -217,20 +217,81 @@ class DoctorsTab extends StatelessWidget {
   }
 
   Widget _buildDoctorImage(Doctor doctor) {
-    return Container(
+    return _DoctorPhoto(
+      imageUrl: doctor.image,
       width: 64,
       height: 64,
-      decoration: BoxDecoration(
-        color: C.frost,
-        shape: BoxShape.circle,
-        image: doctor.image.isNotEmpty
-            ? DecorationImage(
-                image: NetworkImage(doctor.image), fit: BoxFit.cover)
-            : null,
+      borderRadius: 32,
+    );
+  }
+}
+
+class _DoctorPhoto extends StatelessWidget {
+  final String imageUrl;
+  final double width;
+  final double height;
+  final double borderRadius;
+  final double fallbackIconSize;
+
+  const _DoctorPhoto({
+    required this.imageUrl,
+    required this.width,
+    required this.height,
+    this.borderRadius = 0,
+    this.fallbackIconSize = 32,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fallback = Container(
+      width: width,
+      height: height,
+      color: C.frost,
+      alignment: Alignment.center,
+      child: Icon(
+        Icons.person_rounded,
+        color: C.textLight,
+        size: fallbackIconSize,
       ),
-      child: doctor.image.isEmpty
-          ? const Icon(Icons.person_rounded, color: C.textLight, size: 32)
-          : null,
+    );
+
+    if (imageUrl.isEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: fallback,
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: Image.network(
+        imageUrl,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return Container(
+            width: width,
+            height: height,
+            color: C.frost,
+            alignment: Alignment.center,
+            child: SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: C.mid.withOpacity(0.7),
+                value: progress.expectedTotalBytes != null
+                    ? progress.cumulativeBytesLoaded /
+                        progress.expectedTotalBytes!
+                    : null,
+              ),
+            ),
+          );
+        },
+        errorBuilder: (_, __, ___) => fallback,
+      ),
     );
   }
 }
@@ -345,21 +406,12 @@ class _DoctorDetailScreen extends StatelessWidget {
   }
 
   Widget _buildLargeImage() {
-    return Container(
+    return _DoctorPhoto(
+      imageUrl: doctor.image,
       width: 120,
       height: 140,
-      decoration: BoxDecoration(
-        color: C.bgPage,
-        borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(
-          colors: [C.skyPale, C.frost],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: const Center(
-        child: Icon(Icons.person_rounded, color: C.mid, size: 60),
-      ),
+      borderRadius: 24,
+      fallbackIconSize: 60,
     );
   }
 

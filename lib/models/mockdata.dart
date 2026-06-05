@@ -36,6 +36,8 @@ const List<Doctor> mockDoctors = [
     reviews: 124,
     experience: '8 years',
     price: 500.0,
+    image:
+        'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop',
     isOnline: true,
     bio: 'Specialized in high-risk pregnancy and prenatal care. Dedicated to providing compassionate care for maternal health.',
   ),
@@ -48,6 +50,8 @@ const List<Doctor> mockDoctors = [
     reviews: 89,
     experience: '12 years',
     price: 450.0,
+    image:
+        'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop',
     isOnline: true,
     bio: 'Expert in newborn care and child development. Focuses on preventive medicine and infectious diseases in children.',
   ),
@@ -60,6 +64,8 @@ const List<Doctor> mockDoctors = [
     reviews: 56,
     experience: '6 years',
     price: 600.0,
+    image:
+        'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=400&h=400&fit=crop',
     isOnline: false,
     bio: 'Focused on fetal development monitoring and managing complex pregnancy conditions through advanced imaging.',
   ),
@@ -72,6 +78,8 @@ const List<Doctor> mockDoctors = [
     reviews: 112,
     experience: '5 years',
     price: 300.0,
+    image:
+        'https://images.unsplash.com/photo-1622253692010-333f73279102?w=400&h=400&fit=crop',
     isOnline: true,
     bio: 'Providing comprehensive primary care for families with a focus on maternal wellness and community health.',
   ),

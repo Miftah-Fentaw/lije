@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/models.dart';
 import 'dart:math' as math;
+import 'widgets/feature_app_bar.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // COLOR PALETTE  (light-blue theme)
@@ -556,67 +557,7 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
 
   // ── APP BAR ────────────────────────────────────────────────────────────────
   Widget _buildAppBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(children: [
-        // Back button
-        _GlassBtn(
-          onTap: () => Navigator.of(context).pop(),
-          child: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: BC.primaryDeep, size: 18),
-        ),
-        const SizedBox(width: 10),
-        // ── LOGO added here ──────────────────────────────────────────────────
-        _AppLogo(size: 34),
-        const SizedBox(width: 8),
-        // Title – flexible so it never overflows
-        Expanded(
-            child: Text(
-          s('pregnancyCalcTitle'),
-          style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: BC.textDark,
-              letterSpacing: -0.3),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-        )),
-        const SizedBox(width: 8),
-        // Language indicator (read-only, set from home screen)
-        ValueListenableBuilder<AppLang>(
-          valueListenable: langNotifier,
-          builder: (_, lang, __) {
-            const flags = {
-              AppLang.english: '🌍',
-              AppLang.amharic: '🇪🇹',
-              AppLang.oromic: '🌿'
-            };
-            const labels = {
-              AppLang.english: 'EN',
-              AppLang.amharic: 'አማ',
-              AppLang.oromic: 'OR'
-            };
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-              decoration: BoxDecoration(
-                color: BC.primaryFrost,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: BC.border),
-              ),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Text(flags[lang]!, style: const TextStyle(fontSize: 12)),
-                const SizedBox(width: 3),
-                Text(labels[lang]!,
-                    style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: BC.primaryDeep)),
-              ]),
-            );
-          },
-        ),
-      ]),
-    );
+    return FeatureAppBar(title: s('pregnancyCalcTitle'));
   }
 
   // ── HEADER ─────────────────────────────────────────────────────────────────

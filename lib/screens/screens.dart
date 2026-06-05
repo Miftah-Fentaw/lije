@@ -12,6 +12,7 @@ import 'package:lije/screens/after_birth_screen.dart';
 import 'package:lije/screens/navs/discover.dart';
 import 'package:lije/screens/navs/doctors.dart';
 import 'package:lije/screens/navs/profile.dart';
+import 'package:lije/screens/widgets/feature_app_bar.dart';
 // ─────────────────────────────────────────────────────────────────────────────
 // LIJE LOGO
 // ─────────────────────────────────────────────────────────────────────────────
@@ -457,7 +458,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                   const SizedBox(width: 8),
                   _iconBtn(Icons.favorite_border_rounded),
                   const SizedBox(width: 8),
-                  _langChooser(lang),
+                  const FeatureLangChooser(),
         
                 ]),
                 const SizedBox(height: 12),
@@ -466,65 +467,6 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
               ]),
             )),
       );
-
-  // ── LANGUAGE CHOOSER (dropdown) ───────────────────────────────────────────
-  Widget _langChooser(AppLang currentLang) {
-    const labels = {
-      AppLang.english: 'ENG',
-      AppLang.amharic: 'AMH',
-      AppLang.oromic: 'ORO',
-    };
-
-    return PopupMenuButton<AppLang>(
-      onSelected: (AppLang newLang) {
-        langNotifier.value = newLang;
-        HapticFeedback.selectionClick();
-      },
-      offset: const Offset(0, 36),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-      color: C.white,
-      elevation: 6,
-      shadowColor: Colors.black26,
-      itemBuilder: (context) => AppLang.values
-          .map((l) => PopupMenuItem<AppLang>(
-                value: l,
-                height: 36,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  labels[l]!,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                    color: currentLang == l ? C.darkBlue : C.textLight,
-                  ),
-                ),
-              ))
-          .toList(),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              labels[currentLang]!,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.5,
-                color: C.darkBlue,
-              ),
-            ),
-            const Icon(
-              Icons.arrow_drop_down,
-              color: Color(0xFF4FC3F7),
-              size: 22,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _searchBar(AppLang lang) => Container(
         height: 44,

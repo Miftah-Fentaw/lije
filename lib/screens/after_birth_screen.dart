@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/models.dart';
+import 'widgets/feature_app_bar.dart';
 
 // ============================================================
 // INTERNAL COLOR PALETTE  (mapped to app theme)
@@ -2321,86 +2322,22 @@ class _AfterBirthScreenState extends State<AfterBirthScreen>
           )),
           SafeArea(
               child: Column(children: [
-            _buildTopBar(),
+            FeatureAppBar(
+              title: _t('title'),
+              trailing: _dateEntered
+                  ? [
+                      FeatureGlassIconBtn(
+                        onTap: _pickDate,
+                        child: const Icon(Icons.edit_calendar_outlined,
+                            color: C.darkBlue, size: 18),
+                      ),
+                    ]
+                  : null,
+            ),
             Expanded(child: _dateEntered ? _buildMainContent() : _buildHero()),
           ])),
         ]),
       ),
-    );
-  }
-
-  // ── TOP BAR ───────────────────────────────────────────────
-  Widget _buildTopBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [_C.blueDeep, _C.bluePrimary, _C.blueVibrant],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-              color: _C.blueDeep.withOpacity(0.35),
-              blurRadius: 20,
-              offset: const Offset(0, 6))
-        ],
-      ),
-      child: Row(children: [
-        GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: Container(
-            padding: const EdgeInsets.all(9),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.18),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.25)),
-            ),
-            child:
-                const Icon(Icons.arrow_back_ios_new, color: _C.white, size: 17),
-          ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(_t('title'),
-              style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: _C.white,
-                  letterSpacing: 0.3),
-              overflow: TextOverflow.ellipsis),
-          if (_dateEntered)
-            Text(_ageLabel,
-                style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w500),
-                overflow: TextOverflow.ellipsis),
-        ])),
-        AnimatedBuilder(
-          animation: _pulseAnim,
-          builder: (_, child) =>
-              Transform.scale(scale: _pulseAnim.value, child: child),
-          child: const Text('👶', style: TextStyle(fontSize: 28)),
-        ),
-        if (_dateEntered)
-          GestureDetector(
-            onTap: _pickDate,
-            child: Container(
-              margin: const EdgeInsets.only(left: 8),
-              padding: const EdgeInsets.all(9),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.18),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withOpacity(0.25)),
-              ),
-              child: const Icon(Icons.edit_calendar_outlined,
-                  color: _C.white, size: 17),
-            ),
-          ),
-      ]),
     );
   }
 
