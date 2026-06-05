@@ -299,7 +299,7 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
   PregnancyResult? _result;
   String? _errorMsg;
   bool _showResult = false;
-  bool _showFormula = false;
+  bool _showFormula = true;
   bool _notifySet = false;
 
   late AnimationController _bgAnim;
@@ -1047,8 +1047,32 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
     );
   }
 
+  List<String> _formulaRulesForMethod() {
+    switch (_method) {
+      case 0:
+        return [s('lnmpCalcRule1'), s('lnmpCalcRule2'), s('lnmpCalcRule3')];
+      case 1:
+        return [s('usCalcRule1'), s('usCalcRule2'), s('usCalcRule3')];
+      default:
+        return [s('ivfCalcRule1'), s('ivfCalcRule2'), s('ivfCalcRule3')];
+    }
+  }
+
+  String _formulaMethodLabel() {
+    switch (_method) {
+      case 0:
+        return s('lastPeriod');
+      case 1:
+        return s('ultrasound');
+      default:
+        return s('ivfTransfer');
+    }
+  }
+
   // ── FORMULA CARD ───────────────────────────────────────────────────────────
   Widget _buildFormulaCard() {
+    final rules = _formulaRulesForMethod();
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: GestureDetector(
@@ -1072,13 +1096,30 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
               ),
               const SizedBox(width: 10),
               Expanded(
-                  child: Text(s('howCalcWorks'),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(s('howCalcWorks'),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: BC.primaryDeep)),
+                    const SizedBox(height: 2),
+                    Text(
+                      _formulaMethodLabel(),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
-                      style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: BC.primaryDeep))),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: BC.primary.withOpacity(0.75),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               AnimatedRotation(
                 turns: _showFormula ? 0.5 : 0,
                 duration: const Duration(milliseconds: 300),
@@ -1088,12 +1129,17 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
             ]),
             AnimatedCrossFade(
               firstChild: const SizedBox.shrink(),
-              secondChild: Column(children: [
-                const SizedBox(height: 12),
-                _formulaLine('1.', s('calcRule1')),
-                _formulaLine('2.', s('calcRule2')),
-                _formulaLine('3.', s('calcRule3')),
-              ]),
+              secondChild: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                child: Column(
+                  key: ValueKey(_method),
+                  children: [
+                    const SizedBox(height: 12),
+                    for (var i = 0; i < rules.length; i++)
+                      _formulaLine('${i + 1}.', rules[i]),
+                  ],
+                ),
+              ),
               crossFadeState: _showFormula
                   ? CrossFadeState.showSecond
                   : CrossFadeState.showFirst,

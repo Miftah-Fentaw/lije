@@ -120,7 +120,13 @@ class LS {
       'home': 'Home',
       'doctors': 'Doctors',
       'findDoctorTitle': 'Find Doctor',
-      'bookConsult': 'bookConsult',
+      'doctorSearchHint': 'Search name, specialty, hospital…',
+      'doctorSearchEmpty': 'No doctors found',
+      'doctorSearchEmptyHint': 'Try another name or specialty',
+      'filterAll': 'All',
+      'filterOnline': 'Online',
+      'doctorsAvailable': 'available',
+      'bookConsult': 'Book Consult',
       'expYears': 'years exp',
       'doctorBio': 'About Doctor',
       'ratings': 'Ratings',
@@ -254,6 +260,24 @@ class LS {
           'Ultrasound: Back-calculates LNMP from GA at scan, then adds 280 days.',
       'calcRule3':
           'IVF: EDD = Transfer date + (266 days − embryo age); adjusts precisely for Day-3 or Day-5 embryos.',
+      'lnmpCalcRule1':
+          'Enter the first day of your last normal menstrual period (LNMP).',
+      'lnmpCalcRule2':
+          'Due date (EDD) = LNMP + 9 months + 7 days — Naegele\'s rule.',
+      'lnmpCalcRule3':
+          'Gestational age today = days from LNMP to today, shown as weeks and days (full term ≈ 280 days).',
+      'usCalcRule1':
+          'Enter your ultrasound scan date and the gestational age on the report (weeks + extra days).',
+      'usCalcRule2':
+          'Estimated LNMP = scan date minus gestational age at scan.',
+      'usCalcRule3':
+          'EDD = estimated LNMP + 280 days. Current age is counted from that LNMP.',
+      'ivfCalcRule1':
+          'Enter embryo transfer date and embryo age (Day 3 cleavage or Day 5 blastocyst).',
+      'ivfCalcRule2':
+          'EDD = transfer date + (266 days − embryo age at transfer).',
+      'ivfCalcRule3':
+          'Estimated LNMP = transfer date − (14 days + embryo age). Age and trimester follow from there.',
       'gregorian': 'Gregorian',
       'ethiopian': 'Ethiopian',
       'cancel': 'Cancel',
@@ -299,6 +323,15 @@ class LS {
       'settings': 'ቅንብሮች',
       'profile': 'ቅንብሮች',
       'searchHint': 'ምክር ወይም ዶክተር ይፈልጉ…',
+      'findDoctorTitle': 'ዶክተር ፈልግ',
+      'doctorSearchHint': 'ስም፣ ስፔሻሊቲ ወይም ሆስፒታል ይፈልጉ…',
+      'doctorSearchEmpty': 'ዶክተር አልተገኘም',
+      'doctorSearchEmptyHint': 'ሌላ ስም ወይም ስፔሻሊቲ ይሞክሩ',
+      'filterAll': 'ሁሉ',
+      'filterOnline': 'ኦንላይን',
+      'doctorsAvailable': 'ይገኛል',
+      'bookConsult': 'ምክር ይዘዙ',
+      'doctors': 'ዶክተሮች',
       'selectSection': 'ፈጣን ድረስ',
 
       // ── Home cards ───────────────────────────────────────────────────────────
@@ -383,6 +416,17 @@ class LS {
       'calcRule2': 'ኡልትራሳውንድ፥ ስካን ቀን ከፅንሱ ዕድሜ ተቀንሶ LNMP ይሰላሉ ከዚያ 280 ቀን ይጨምሩ።',
       'calcRule3':
           'IVF፥ EDD = ሽግግር ቀን + (266 ቀን − የፅንሱ ዕድሜ)፤ ቀን 3 ወይም ቀን 5 ፅንስ ይስተካከሉ።',
+      'lnmpCalcRule1': 'የመጨረሻውን የወር አበባ የመጀመሪያ ቀን (LNMP) ያስገቡ።',
+      'lnmpCalcRule2': 'የወሊድ ቀን (EDD) = LNMP + 9 ወር + 7 ቀን — የናይጌሌ ቀመር።',
+      'lnmpCalcRule3':
+          'የዛሬ ዕርግዝና ዕድሜ = ከ LNMP እስከ ዛሬ ያሉ ቀናት፣ በሳምንታት እና ቀናት (ሙሉ ጊዜ ≈ 280 ቀን)።',
+      'usCalcRule1': 'የኡልትራሳውንድ ስካን ቀን እና በሪፖርቱ ላይ የተገኘውን ዕድሜ (ሳምንታት + ቀናት) ያስገቡ።',
+      'usCalcRule2': 'የተገመተ LNMP = ስካን ቀን − በስካን ላይ ያለው ዕድሜ።',
+      'usCalcRule3': 'EDD = የተገመተ LNMP + 280 ቀን። አሁን ያለው ዕድሜ ከዚያ LNMP ይቆጠራል።',
+      'ivfCalcRule1': 'የፅንስ ሽግግር ቀን እና የፅንሱ ዕድሜ (ቀን 3 ወይም ቀን 5) ይምረጡ።',
+      'ivfCalcRule2': 'EDD = ሽግግር ቀን + (266 ቀን − የፅንሱ ዕድሜ)።',
+      'ivfCalcRule3':
+          'የተገመተ LNMP = ሽግግር ቀን − (14 ቀን + የፅንሱ ዕድሜ)። ዕድሜና ትሪሜስተር ከዚያ ይሰላሉ።',
       'gregorian': 'ግሪጎሪያን',
       'ethiopian': 'ኢትዮጵያ',
       'cancel': 'ሰርዝ',
@@ -424,6 +468,15 @@ class LS {
       'settings': 'Qindaa\'ina',
       'profile': 'Qindaa\'ina',
       'searchHint': 'Gorsa, doktora barbaadi…',
+      'findDoctorTitle': 'Doktora Barbaadi',
+      'doctorSearchHint': 'Maqaa, ogummaa ykn hospitaala barbaadi…',
+      'doctorSearchEmpty': 'Doktoriin hin argamne',
+      'doctorSearchEmptyHint': 'Maqaa ykn ogummaa biraa yaali',
+      'filterAll': 'Hunda',
+      'filterOnline': 'Online',
+      'doctorsAvailable': 'ni argama',
+      'bookConsult': 'Gorsa Qabsiisi',
+      'doctors': 'Doktorota',
       'selectSection': 'Karaa Saffisaa',
 
       // ── Home cards ───────────────────────────────────────────────────────────
@@ -512,6 +565,24 @@ class LS {
           'Sonoograafii: LNMP yeroo iskaanii irraa duubatti herreegamee guyyaa 280 dabalama.',
       'calcRule3':
           'IVF: EDD = Guyyaa jijjiiruu + (Guyyaa 266 − umurii embryoo); Guyyaa 3 ykn 5 sirreeffama.',
+      'lnmpCalcRule1':
+          'Guyyaa jalqabaa aduraa darbee dhumaa (LNMP) galchi.',
+      'lnmpCalcRule2':
+          'Guyyaa dhalootaa (EDD) = LNMP + Ji\'aa 9 + Guyyaa 7 — Seeraa Naegele.',
+      'lnmpCalcRule3':
+          'Umurii ulfaa har\'aa = guyyaa LNMP irraa hanga har\'aatti (torban fi guyyaa; guyyaa 280 ≈ guutuu).',
+      'usCalcRule1':
+          'Guyyaa iskaanii sonoograafii fi umurii ulfaa gabaasa irraa (torban + guyyaa dabalataa) galchi.',
+      'usCalcRule2':
+          'LNMP tilmaamame = guyyaa iskaanii − umurii ulfaa yeroo iskaanii.',
+      'usCalcRule3':
+          'EDD = LNMP tilmaamame + guyyaa 280. Umuriin ammaa LNMP sana irraa herreegama.',
+      'ivfCalcRule1':
+          'Guyyaa jijjiiruu embryoo fi umurii embryoo (Guyyaa 3 ykn Guyyaa 5) filadhu.',
+      'ivfCalcRule2':
+          'EDD = guyyaa jijjiiruu + (Guyyaa 266 − umurii embryoo yeroo jijjiiruu).',
+      'ivfCalcRule3':
+          'LNMP tilmaamame = guyyaa jijjiiruu − (Guyyaa 14 + umurii embryoo). Umuriin fi gilgaalli achirraa herreegama.',
       'gregorian': 'Gregorian',
       'ethiopian': 'Itoophiyaa',
       'cancel': 'Haqi',
