@@ -85,11 +85,11 @@ class _MainShellState extends State<MainShell> {
       valueListenable: langNotifier,
       builder: (_, lang, __) => Scaffold(
         backgroundColor: C.bgPage,
-        body: IndexedStack(index: _idx, children: const [
-          HomeTab(),
-          DoctorsTab(),
-          DiscoverTab(),
-          SettingsTab(),
+        body: IndexedStack(index: _idx, children: [
+          HomeTab(onNavigateToTab: _onTap),
+          const DoctorsTab(),
+          const DiscoverTab(),
+          const SettingsTab(),
         ]),
         bottomNavigationBar: _BottomNav(
           currentIndex: _idx,
@@ -319,7 +319,8 @@ class ScreenShell extends StatelessWidget {
 // HOME TAB
 // ─────────────────────────────────────────────────────────────────────────────
 class HomeTab extends StatefulWidget {
-  const HomeTab({super.key});
+  final ValueChanged<int>? onNavigateToTab;
+  const HomeTab({super.key, this.onNavigateToTab});
   @override
   State<HomeTab> createState() => _HomeTabState();
 }
@@ -403,8 +404,6 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                       child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _couponCard(lang),
-                            const SizedBox(height: 14),
                             _heroBanner(lang),
                             const SizedBox(height: 20),
                             _sectionLabel(LS.get(lang, 'selectSection')),
@@ -565,91 +564,6 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                       color: C.coral, shape: BoxShape.circle))),
       ]);
 
-  Widget _couponCard(AppLang lang) => Container(
-        decoration: BoxDecoration(
-          color: C.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: C.lightBlue),
-        ),
-        // ← Remove IntrinsicHeight; use a fixed min-height Row instead
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                          color: C.mid.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(6)),
-                      child: Text(
-                        LS.get(lang, 'couponCode'),
-                        style: const TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            color: C.mid),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      LS.get(lang, 'couponTitle'),
-                      style: const TextStyle(
-                          fontSize: 16, // ← slightly smaller for Amharic
-                          fontWeight: FontWeight.w900,
-                          color: C.navy),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      LS.get(lang, 'couponDesc'),
-                      style: const TextStyle(fontSize: 10, color: C.textMid),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            CustomPaint(
-                size: const Size(1, 64), // ← fixed height instead of infinity
-                painter: _DashPainter()),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    LS.get(lang, 'couponOff'),
-                    style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        color: C.mid),
-                  ),
-                  Text(
-                    LS.get(lang, 'couponOffLabel'),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                        color: C.navy),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
   // ── HERO BANNER ─────────────────────────────────────────────────────────────
   Widget _heroBanner(AppLang lang) => Container(
         height: 160,
@@ -708,10 +622,11 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                     Text(LS.get(lang, 'heroOffer'),
                         style: TextStyle(
                             color: Colors.white.withOpacity(0.85),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            height: 1.35),
                         overflow: TextOverflow.ellipsis,
-                        maxLines: 1),
+                        maxLines: 2),
                   ]),
             ),
           ]),
@@ -764,7 +679,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
           LS.get(lang, 'talkDoctor'),
           LS.get(lang, 'talkDoctorSub'),
           const [C.darkBlue, C.darkBlue],
-          () => _showComingSoon(ctx, lang)),
+          () => _openDoctorsTab()),
     ];
     return Column(children: [
       Row(children: [
@@ -794,6 +709,11 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                     cat: cats[3], delay: const Duration(milliseconds: 210)))),
       ]),
     ]);
+  }
+
+  void _openDoctorsTab() {
+    HapticFeedback.lightImpact();
+    widget.onNavigateToTab?.call(1);
   }
 
   void _showComingSoon(BuildContext ctx, AppLang lang) {
@@ -1120,7 +1040,9 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   // ── DOCTOR CARD ─────────────────────────────────────────────────────────────
   Widget _doctorCard(AppLang lang) => _FadeInCard(
         delay: const Duration(milliseconds: 100),
-        child: Container(
+        child: GestureDetector(
+          onTap: _openDoctorsTab,
+          child: Container(
           padding: const EdgeInsets.all(13),
           decoration: BoxDecoration(
               color: C.cardBg,
@@ -1168,7 +1090,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                       overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 10),
                   GestureDetector(
-                    onTap: () => HapticFeedback.lightImpact(),
+                    onTap: _openDoctorsTab,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 13, vertical: 8),
@@ -1189,6 +1111,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                   ),
                 ])),
           ]),
+        ),
         ),
       );
 
@@ -1246,27 +1169,6 @@ Widget _bubble(
               shape: BoxShape.circle,
               color: Colors.white.withOpacity(opacity))),
     );
-
-// ─────────────────────────────────────────────────────────────────────────────
-// DASHED PAINTER
-// ─────────────────────────────────────────────────────────────────────────────
-class _DashPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    const dashH = 5.0, gapH = 4.0;
-    final paint = Paint()
-      ..color = C.pale
-      ..strokeWidth = 1.5;
-    double y = 0;
-    while (y < size.height) {
-      canvas.drawLine(Offset(0, y), Offset(0, y + dashH), paint);
-      y += dashH + gapH;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter _) => false;
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CATEGORY DATA + CARD

@@ -6,33 +6,33 @@ import 'package:lije/models/models.dart';
 import 'package:lije/screens/screens.dart' show LijeLogo;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// LOCAL DESIGN TOKENS  (blue palette — keeps screens visually distinct)
+// LOCAL DESIGN TOKENS  (mapped to app theme)
 // ─────────────────────────────────────────────────────────────────────────────
 abstract class _B {
-  static const navy = Color(0xFF023E8A);
-  static const deep = Color(0xFF0077B6);
-  static const mid = Color(0xFF0096C7);
-  static const bright = Color(0xFF00B4D8);
-  static const vivid = Color(0xFF48CAE4);
-  static const soft = Color(0xFF90E0EF);
-  static const pale = Color(0xFFCAF0F8);
-  static const frost = Color(0xFFEBF8FF);
+  static const navy = C.darkBlue;
+  static const deep = C.darkBlue;
+  static const mid = C.darkBlue;
+  static const bright = C.darkBlue;
+  static const vivid = C.darkBlue;
+  static const soft = C.lightBlue;
+  static const pale = C.lightBlue;
+  static const frost = C.lightBlue;
 
-  static const textDark = Color(0xFF023E8A);
-  static const textMid = Color(0xFF0077B6);
-  static const textLight = Color(0xFF90E0EF);
+  static const textDark = C.darkBlue;
+  static const textMid = C.darkBlue;
+  static const textLight = C.textLight;
 
-  static const success = Color(0xFF10B981);
-  static const successBg = Color(0xFFD1FAE5);
-  static const warn = Color(0xFFF59E0B);
-  static const warnBg = Color(0xFFFEF3C7);
-  static const purple = Color(0xFF7C3AED);
-  static const purpleBg = Color(0xFFF5F3FF);
+  static const success = C.success;
+  static const successBg = C.successBg;
+  static const warn = C.warn;
+  static const warnBg = C.warnBg;
+  static const purple = C.purple;
+  static const purpleBg = C.purpleBg;
 
-  static const border = Color(0xFFBAE6FD);
+  static const border = C.lightBlue;
 
-  static const List<Color> headerGrad = [navy, mid, vivid];
-  static const List<Color> heroGrad = [navy, deep, mid, vivid];
+  static const List<Color> headerGrad = [C.darkBlue, C.darkBlue];
+  static const List<Color> heroGrad = [C.darkBlue, C.darkBlue];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -836,7 +836,7 @@ class _DPSState extends State<DuringPregnancyScreen>
   Widget build(BuildContext context) => ValueListenableBuilder<AppLang>(
         valueListenable: langNotifier,
         builder: (_, __, ___) => Scaffold(
-          backgroundColor: _B.frost,
+          backgroundColor: C.bgPage,
           body: Stack(children: [
             // Animated background bubbles
             Positioned.fill(
@@ -855,14 +855,13 @@ class _DPSState extends State<DuringPregnancyScreen>
 
   // ── TOP BAR ────────────────────────────────────────────────────────────────
   Widget _topBar() => Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-              colors: _B.headerGrad,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight),
+        decoration: BoxDecoration(
+          color: _B.navy,
           boxShadow: [
             BoxShadow(
-                color: Color(0x440077B6), blurRadius: 18, offset: Offset(0, 5))
+                color: _B.navy.withOpacity(0.15),
+                blurRadius: 12,
+                offset: const Offset(0, 4))
           ],
         ),
         child: SafeArea(
@@ -1115,16 +1114,14 @@ class _DPSState extends State<DuringPregnancyScreen>
   Widget _progressCard(WeekData wd) => Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-              colors: [Color(0xFF023E8A), Color(0xFF0077B6), Color(0xFF00B4D8)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight),
-          borderRadius: BorderRadius.circular(24),
+          color: _B.navy,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: _B.pale),
           boxShadow: [
             BoxShadow(
-                color: _B.navy.withOpacity(.38),
-                blurRadius: 26,
-                offset: const Offset(0, 10))
+                color: _B.navy.withOpacity(.12),
+                blurRadius: 16,
+                offset: const Offset(0, 6))
           ],
         ),
         child: Column(children: [

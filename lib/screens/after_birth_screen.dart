@@ -4,27 +4,27 @@ import 'package:flutter/services.dart';
 import '../models/models.dart';
 
 // ============================================================
-// INTERNAL COLOR PALETTE  (blue ocean theme — screen-private)
+// INTERNAL COLOR PALETTE  (mapped to app theme)
 // ============================================================
 abstract class _C {
-  static const Color navy = Color(0xFF0A2463);
-  static const Color navyLight = Color(0xFF1E4A9E);
-  static const Color accent = Color(0xFF3A86FF);
-  static const Color accentLight = Color(0xFFE8F1FF);
-  static const Color skyBlue = Color(0xFF00B4D8);
-  static const Color skyLight = Color(0xFFCAF0F8);
-  static const Color white = Colors.white;
-  static const Color grayLight = Color(0xFFF0F7FF);
-  static const Color grayBorder = Color(0xFFD0E4F7);
-  static const Color textDark = Color(0xFF0A2463);
-  static const Color textMedium = Color(0xFF4A6FA5);
-  static const Color cardGlass = Color(0xE8FFFFFF);
-  static const Color bluePrimary = Color(0xFF0096C7);
-  static const Color blueDeep = Color(0xFF0077B6);
-  static const Color blueVibrant = Color(0xFF00B4D8);
-  static const Color blueSoft = Color(0xFF90E0EF);
-  static const Color bluePale = Color(0xFFE0F7FF);
-  static const Color blueGlass = Color(0xAACAF0F8);
+  static const Color navy = C.darkBlue;
+  static const Color navyLight = C.darkBlue;
+  static const Color accent = C.darkBlue;
+  static const Color accentLight = C.lightBlue;
+  static const Color skyBlue = C.darkBlue;
+  static const Color skyLight = C.lightBlue;
+  static const Color white = C.white;
+  static const Color grayLight = C.bgPage;
+  static const Color grayBorder = C.lightBlue;
+  static const Color textDark = C.darkBlue;
+  static const Color textMedium = C.darkBlue;
+  static const Color cardGlass = C.white;
+  static const Color bluePrimary = C.darkBlue;
+  static const Color blueDeep = C.darkBlue;
+  static const Color blueVibrant = C.darkBlue;
+  static const Color blueSoft = C.lightBlue;
+  static const Color bluePale = C.lightBlue;
+  static const Color blueGlass = C.lightBlue;
 }
 
 // ============================================================
@@ -1750,22 +1750,22 @@ const List<_Stage> _allStages = [
             emoji: '👁️',
             title: 'Vision',
             detail: 'Focuses 8–12 inches',
-            bgColor: Color(0xFFDBF4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '👂',
             title: 'Hearing',
             detail: 'Startles to sounds',
-            bgColor: Color(0xFFD0F4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '💪',
             title: 'Motor',
             detail: 'Tight fists, rooting reflex',
-            bgColor: Color(0xFFE0F8FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '❤️',
             title: 'Bonding',
             detail: 'Skin-to-skin contact',
-            bgColor: Color(0xFFCCF2FF)),
+            bgColor: _C.bluePale),
       ]),
   _Stage(
       key: 'earlyInfant',
@@ -1793,22 +1793,22 @@ const List<_Stage> _allStages = [
             emoji: '😄',
             title: 'Social',
             detail: 'First smiles',
-            bgColor: Color(0xFFDBF4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '🗣️',
             title: 'Language',
             detail: 'Cooing, gurgling',
-            bgColor: Color(0xFFD0F4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '🏋️',
             title: 'Motor',
             detail: 'Lifts head',
-            bgColor: Color(0xFFE0F8FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '🧠',
             title: 'Cognitive',
             detail: 'Recognizes faces',
-            bgColor: Color(0xFFCCF2FF)),
+            bgColor: _C.bluePale),
       ]),
   _Stage(
       key: 'discovering',
@@ -1836,22 +1836,22 @@ const List<_Stage> _allStages = [
             emoji: '🤲',
             title: 'Motor',
             detail: 'Reaches, grabs, rolls',
-            bgColor: Color(0xFFDBF4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '😂',
             title: 'Social',
             detail: 'Laughs aloud',
-            bgColor: Color(0xFFD0F4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '👅',
             title: 'Sensory',
             detail: 'Explores with mouth',
-            bgColor: Color(0xFFE0F8FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '👶',
             title: 'Language',
             detail: 'Babbles',
-            bgColor: Color(0xFFCCF2FF)),
+            bgColor: _C.bluePale),
       ]),
   _Stage(
       key: 'explorer',
@@ -1876,22 +1876,22 @@ const List<_Stage> _allStages = [
             emoji: '🧲',
             title: 'Motor',
             detail: 'Sits alone, may crawl',
-            bgColor: Color(0xFFDBF4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '🍎',
             title: 'Feeding',
             detail: 'First solid foods',
-            bgColor: Color(0xFFD0F4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '🎭',
             title: 'Emotions',
             detail: 'Stranger anxiety',
-            bgColor: Color(0xFFE0F8FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '🎵',
             title: 'Language',
             detail: 'Babbles "baba"',
-            bgColor: Color(0xFFCCF2FF)),
+            bgColor: _C.bluePale),
       ]),
   _Stage(
       key: 'almostToddler',
@@ -1918,22 +1918,22 @@ const List<_Stage> _allStages = [
             emoji: '🦵',
             title: 'Motor',
             detail: 'Stands with support',
-            bgColor: Color(0xFFDBF4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '💬',
             title: 'Language',
             detail: 'First words',
-            bgColor: Color(0xFFD0F4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '🧩',
             title: 'Cognitive',
             detail: 'Object permanence',
-            bgColor: Color(0xFFE0F8FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '🤗',
             title: 'Social',
             detail: 'Points at objects',
-            bgColor: Color(0xFFCCF2FF)),
+            bgColor: _C.bluePale),
       ]),
   _Stage(
       key: 'firstToddler',
@@ -1960,22 +1960,22 @@ const List<_Stage> _allStages = [
             emoji: '🚶',
             title: 'Walking',
             detail: 'Independent walking',
-            bgColor: Color(0xFFDBF4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '📖',
             title: 'Language',
             detail: 'Growing vocabulary',
-            bgColor: Color(0xFFD0F4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '🎨',
             title: 'Play',
             detail: 'Imitative play',
-            bgColor: Color(0xFFE0F8FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '😤',
             title: 'Emotions',
             detail: 'Tantrums begin',
-            bgColor: Color(0xFFCCF2FF)),
+            bgColor: _C.bluePale),
       ]),
   _Stage(
       key: 'curiousToddler',
@@ -2000,22 +2000,22 @@ const List<_Stage> _allStages = [
             emoji: '🏃',
             title: 'Gross Motor',
             detail: 'Runs, climbs, kicks',
-            bgColor: Color(0xFFDBF4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '✏️',
             title: 'Fine Motor',
             detail: 'Scribbles, stacks',
-            bgColor: Color(0xFFD0F4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '🧸',
             title: 'Pretend Play',
             detail: 'Imaginative play',
-            bgColor: Color(0xFFE0F8FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '💬',
             title: 'Language',
             detail: '50+ words',
-            bgColor: Color(0xFFCCF2FF)),
+            bgColor: _C.bluePale),
       ]),
   _Stage(
       key: 'theTwos',
@@ -2041,22 +2041,22 @@ const List<_Stage> _allStages = [
             emoji: '🚴',
             title: 'Motor',
             detail: 'Pedals tricycle',
-            bgColor: Color(0xFFDBF4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '🎨',
             title: 'Drawing',
             detail: 'Draws circles',
-            bgColor: Color(0xFFD0F4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '🤝',
             title: 'Social',
             detail: 'Parallel play',
-            bgColor: Color(0xFFE0F8FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '💡',
             title: 'Thinking',
             detail: 'Sorts shapes/colors',
-            bgColor: Color(0xFFCCF2FF)),
+            bgColor: _C.bluePale),
       ]),
   _Stage(
       key: 'preschooler',
@@ -2084,22 +2084,22 @@ const List<_Stage> _allStages = [
             emoji: '🏃',
             title: 'Active Play',
             detail: 'Hops, skips, climbs',
-            bgColor: Color(0xFFDBF4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '📝',
             title: 'Pre-Writing',
             detail: 'Copies letters',
-            bgColor: Color(0xFFD0F4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '👥',
             title: 'Friends',
             detail: 'Cooperative play',
-            bgColor: Color(0xFFE0F8FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '❓',
             title: 'Curiosity',
             detail: 'Asks "why" constantly',
-            bgColor: Color(0xFFCCF2FF)),
+            bgColor: _C.bluePale),
       ]),
   _Stage(
       key: 'preK',
@@ -2125,22 +2125,22 @@ const List<_Stage> _allStages = [
             emoji: '🔢',
             title: 'Numbers',
             detail: 'Counts 10+',
-            bgColor: Color(0xFFDBF4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '📖',
             title: 'Literacy',
             detail: 'Recognizes letters',
-            bgColor: Color(0xFFD0F4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '🏅',
             title: 'Self-Care',
             detail: 'Dresses independently',
-            bgColor: Color(0xFFE0F8FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '🌍',
             title: 'World',
             detail: 'Knows address',
-            bgColor: Color(0xFFCCF2FF)),
+            bgColor: _C.bluePale),
       ]),
   _Stage(
       key: 'kindergartener',
@@ -2166,22 +2166,22 @@ const List<_Stage> _allStages = [
             emoji: '📚',
             title: 'Reading',
             detail: 'Recognizes sight words',
-            bgColor: Color(0xFFDBF4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '🔬',
             title: 'Science',
             detail: 'Asks "how" and "why"',
-            bgColor: Color(0xFFD0F4FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '🤝',
             title: 'Empathy',
             detail: 'Understands others',
-            bgColor: Color(0xFFE0F8FF)),
+            bgColor: _C.bluePale),
         _DevArea(
             emoji: '🎯',
             title: 'Focus',
             detail: 'Sits 10–15 min tasks',
-            bgColor: Color(0xFFCCF2FF)),
+            bgColor: _C.bluePale),
       ]),
 ];
 
@@ -2311,7 +2311,7 @@ class _AfterBirthScreenState extends State<AfterBirthScreen>
     return ValueListenableBuilder<AppLang>(
       valueListenable: langNotifier,
       builder: (_, __, ___) => Scaffold(
-        backgroundColor: _C.bluePale,
+        backgroundColor: C.bgPage,
         body: Stack(children: [
           Positioned.fill(
               child: AnimatedBuilder(
