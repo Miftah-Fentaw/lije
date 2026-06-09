@@ -1,17 +1,24 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../models/models.dart';
-import '../../screens.dart';
-import '../after_birth_screen.dart';
-import '../during_pregnancy_screen.dart';
-import '../pregnancy_calculation_screen.dart';
+import 'package:lije/core/l10n/strings.dart';
+import 'package:lije/core/theme/colors.dart';
+import 'package:lije/core/widgets/feature_app_bar.dart';
+import 'package:lije/core/constants/app_assets.dart';
+import 'package:lije/core/widgets/lije_logo.dart';
+import 'package:lije/features/after_birth/ui/after_birth_screen.dart';
+import 'package:lije/features/during_pregnancy/ui/during_pregnancy_screen.dart';
+import 'package:lije/features/during_pregnancy/models/week_registry.dart';
+import 'package:lije/features/discover/services/discover_search.dart';
+import 'package:lije/features/settings/ui/settings_screens.dart';
+import 'package:lije/features/home/models/app_state.dart';
+import 'package:lije/features/pregnancy_calc/ui/pregnancy_calc_screen.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
 // HOME TAB
 // ─────────────────────────────────────────────────────────────────────────────
 class HomeTab extends StatefulWidget {
-  const HomeTab({super.key});
+  final ValueChanged<int>? onNavigateToTab;
+  const HomeTab({super.key, this.onNavigateToTab});
   @override
   State<HomeTab> createState() => _HomeTabState();
 }
@@ -20,10 +27,12 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   late final AnimationController _entrance, _pulse, _shimmer, _float;
   late final Animation<double> _hFade, _bFade, _pulseAnim;
   late final Animation<Offset> _hSlide, _bSlide;
+  final _homeSearchCtrl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    appState.refreshGa();
     _entrance = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 1000))
       ..forward();
@@ -55,6 +64,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    _homeSearchCtrl.dispose();
     _entrance.dispose();
     _pulse.dispose();
     _shimmer.dispose();
@@ -95,15 +105,16 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                       child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _couponCard(lang),
-                            const SizedBox(height: 14),
                             _heroBanner(lang),
                             const SizedBox(height: 20),
                             _sectionLabel(LS.get(lang, 'selectSection')),
                             const SizedBox(height: 12),
                             _categoryGrid(context, lang),
                             const SizedBox(height: 20),
-                            _pregnancyCard(lang),
+                            ListenableBuilder(
+                              listenable: appState,
+                              builder: (_, __) => _pregnancyCard(lang, context),
+                            ),
                             const SizedBox(height: 16),
                             _doctorCard(lang),
                             const SizedBox(height: 16),
@@ -126,20 +137,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
               child: Column(children: [
                 Row(children: [
-                  AnimatedBuilder(
-                      animation: _pulseAnim,
-                      builder: (_, __) => Container(
-                            decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                      color: C.vivid.withOpacity(
-                                          0.14 + _pulseAnim.value * 0.10),
-                                      blurRadius: 10 + _pulseAnim.value * 5,
-                                      spreadRadius: _pulseAnim.value * 2)
-                                ]),
-                            child: const LijeLogo(size: 44),
-                          )),
+                  const LijeLogo(size: 44),
                   const SizedBox(width: 10),
                   Expanded(
                       child: Column(
@@ -147,7 +145,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                           children: [
                         Text(LS.get(lang, 'appName'),
                             style: const TextStyle(
-                                color: C.navy,
+                                color: C.mid,
                                 fontSize: 20,
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: 1.0),
@@ -155,106 +153,82 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                             maxLines: 1),
                         Text(LS.get(lang, 'appSubtitle'),
                             style: const TextStyle(
-                                fontSize: 10, color: C.textMid),
+                                fontSize: 10, color: C.textLight),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1),
                       ])),
-                  _iconBtn(Icons.notifications_none_rounded, badge: true),
+                  _iconBtn(Icons.notifications_none_rounded,
+                      badge: appState.notificationsEnabled &&
+                          appState.pregnancyRemindersEnabled,
+                      onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const RemindersScreen()))),
                   const SizedBox(width: 8),
-                  _iconBtn(Icons.favorite_border_rounded),
+                  _iconBtn(Icons.explore_rounded, onTap: () {
+                    discoverSearchNotifier.value = '';
+                    widget.onNavigateToTab?.call(2);
+                  }),
                   const SizedBox(width: 8),
-                  _langChooser(lang),
+                  const FeatureLangChooser(),
+        
                 ]),
                 const SizedBox(height: 12),
-                _searchBar(lang),
+                _searchBar(lang, context),
                 const SizedBox(height: 10),
               ]),
             )),
       );
 
-  // ── LANGUAGE CHOOSER (Text-only Dropdown) ──────────────────────────────────
-  Widget _langChooser(AppLang currentLang) {
-    const labels = {
-      AppLang.english: 'ENG',
-      AppLang.amharic: 'AMH',
-      AppLang.oromic: 'ORO'
-    };
-
-    return PopupMenuButton<AppLang>(
-      onSelected: (AppLang newLang) {
-        langNotifier.value = newLang;
-        HapticFeedback.selectionClick();
-      },
-      offset: const Offset(0, 40),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: Colors.white,
-      elevation: 4,
-      itemBuilder: (context) => AppLang.values
-          .map((l) => PopupMenuItem<AppLang>(
-                value: l,
-                height: 38,
-                child: Text(
-                  labels[l]!,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: currentLang == l ? FontWeight.w900 : FontWeight.w600,
-                    color: currentLang == l ? C.vivid : C.navy,
-                  ),
-                ),
-              ))
-          .toList(),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              labels[currentLang]!,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
-                color: C.navy,
-              ),
-            ),
-            const SizedBox(width: 2),
-            const Icon(
-              Icons.arrow_drop_down_rounded,
-              color: C.vivid,
-              size: 20,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _searchBar(AppLang lang) => Container(
+  Widget _searchBar(AppLang lang, BuildContext context) => Container(
         height: 44,
         decoration: BoxDecoration(
-            color: C.frost,
+            color: C.lightBlue,
             borderRadius: BorderRadius.circular(26),
-            border: Border.all(color: C.border)),
-        padding: const EdgeInsets.symmetric(horizontal: 14),
+            border: Border.all(color: C.lightBlue)),
+        padding: const EdgeInsets.symmetric(horizontal: 4),
         child: Row(children: [
-          const Icon(Icons.search_rounded, color: C.textLight, size: 19),
-          const SizedBox(width: 9),
+          const Padding(
+            padding: EdgeInsets.only(left: 10),
+            child: Icon(Icons.search_rounded, color: C.mid, size: 19),
+          ),
           Expanded(
-              child: Text(LS.get(lang, 'searchHint'),
-                  style: TextStyle(
-                      fontSize: 13, color: C.textLight.withOpacity(0.8)),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1)),
+            child: TextField(
+              controller: _homeSearchCtrl,
+              style: const TextStyle(fontSize: 13, color: C.darkBlue),
+              textInputAction: TextInputAction.search,
+              onSubmitted: (q) {
+                discoverSearchNotifier.value = q.trim();
+                widget.onNavigateToTab?.call(2);
+              },
+              decoration: InputDecoration(
+                hintText: LS.get(lang, 'searchDiscover'),
+                hintStyle: TextStyle(
+                    fontSize: 13, color: C.textLight.withOpacity(0.85)),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+              ),
+            ),
+          ),
         ]),
       );
 
-  Widget _iconBtn(IconData icon, {bool badge = false}) =>
+  Widget _iconBtn(IconData icon, {bool badge = false, VoidCallback? onTap}) =>
       Stack(clipBehavior: Clip.none, children: [
-        Container(
+        GestureDetector(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            onTap?.call();
+          },
+          child: Container(
             width: 36,
             height: 36,
             decoration: BoxDecoration(
                 color: C.frost, borderRadius: BorderRadius.circular(11)),
-            child: Icon(icon, color: C.mid, size: 19)),
+            child: Icon(icon, color: C.mid, size: 19),
+          ),
+        ),
         if (badge)
           Positioned(
               top: -2,
@@ -266,118 +240,33 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                       color: C.coral, shape: BoxShape.circle))),
       ]);
 
-  // ── COUPON CARD ────────────────────────────────────────────────────────────
-  Widget _couponCard(AppLang lang) => Container(
-        decoration: BoxDecoration(
-          color: C.frost,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: C.pale, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-                color: C.mid.withOpacity(0.07),
-                blurRadius: 12,
-                offset: const Offset(0, 4))
-          ],
-        ),
-        child: IntrinsicHeight(
-            child: Row(children: [
-          Expanded(
-              child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                        color: C.mid.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(6)),
-                    child: Text(LS.get(lang, 'couponCode'),
-                        style: const TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            color: C.mid)),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(LS.get(lang, 'couponTitle'),
-                      style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          color: C.navy),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1),
-                  const SizedBox(height: 2),
-                  Text(LS.get(lang, 'couponDesc'),
-                      style: const TextStyle(fontSize: 10, color: C.textMid),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis),
-                ]),
-          )),
-          CustomPaint(
-              size: const Size(1, double.infinity), painter: _DashPainter()),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            child:
-                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text(LS.get(lang, 'couponOff'),
-                  style: const TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.w900, color: C.mid)),
-              Text(LS.get(lang, 'couponOffLabel'),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 9, fontWeight: FontWeight.w700, color: C.navy)),
-            ]),
-          ),
-        ])),
-      );
-
   // ── HERO BANNER ─────────────────────────────────────────────────────────────
-  Widget _heroBanner(AppLang lang) => AnimatedBuilder(
-        animation: _pulseAnim,
-        builder: (_, child) => Container(
-          height: 182,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [
-              C.navy,
-              C.soft,
-              C.vivid
-            ], begin: Alignment.topLeft, end: Alignment.bottomRight),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                  color: C.soft.withOpacity(0.28 + _pulseAnim.value * 0.08),
-                  blurRadius: 18 + _pulseAnim.value * 5,
-                  offset: const Offset(0, 8))
-            ],
-          ),
-          child: child,
+  Widget _heroBanner(AppLang lang) => Container(
+        height: 160,
+        decoration: BoxDecoration(
+          color: C.darkBlue,
+          borderRadius: BorderRadius.circular(20),
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(20),
           child: Stack(clipBehavior: Clip.hardEdge, children: [
-            _bubble(top: -18, right: -18, size: 110, opacity: 0.07),
-            _bubble(bottom: -18, right: 55, size: 70, opacity: 0.05),
             Positioned(
-              right: 10,
+              right: 16,
               top: 0,
               bottom: 0,
-              width: 85,
-              child: AnimatedBuilder(
-                  animation: _float,
-                  builder: (_, __) => Transform.translate(
-                        offset: Offset(
-                            0, -5.0 * (0.5 - (_float.value - 0.5).abs()) * 2),
-                        child: const Center(
-                            child: Text('🤰', style: TextStyle(fontSize: 58))),
-                      )),
+              child: Image.asset(
+                AppAssets.lijeLogo,
+                width: 90,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) =>
+                    const Text('🤰', style: TextStyle(fontSize: 52)),
+              ),
             ),
             Positioned(
               left: 20,
               top: 0,
               bottom: 0,
-              right: 105,
+              right: 110,
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -386,8 +275,8 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 9, vertical: 4),
                       decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.22),
-                          borderRadius: BorderRadius.circular(7)),
+                          color: C.white.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(6)),
                       child: Text(LS.get(lang, 'heroBadge'),
                           style: const TextStyle(
                               fontSize: 9,
@@ -408,41 +297,12 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                     const SizedBox(height: 4),
                     Text(LS.get(lang, 'heroOffer'),
                         style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700),
+                            color: Colors.white.withOpacity(0.85),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            height: 1.35),
                         overflow: TextOverflow.ellipsis,
-                        maxLines: 1),
-                    const SizedBox(height: 12),
-                    GestureDetector(
-                      onTap: () => HapticFeedback.lightImpact(),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 9),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(13),
-                          boxShadow: [
-                            BoxShadow(
-                                color: C.navy.withOpacity(0.28),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4))
-                          ],
-                        ),
-                        child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              Icon(Icons.arrow_forward_rounded,
-                                  size: 14, color: C.navy),
-                              SizedBox(width: 4),
-                              Text('OPEN',
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w800,
-                                      color: C.navy)),
-                            ]),
-                      ),
-                    ),
+                        maxLines: 2),
                   ]),
             ),
           ]),
@@ -454,10 +314,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
             width: 4,
             height: 17,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                  colors: [C.navy, C.vivid],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter),
+              color: C.darkBlue,
               borderRadius: BorderRadius.circular(4),
             )),
         const SizedBox(width: 8),
@@ -479,35 +336,61 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
           '📅',
           LS.get(lang, 'pregnancyCalc'),
           LS.get(lang, 'pregnancyCalcSub'),
+          const [C.darkBlue, C.darkBlue],
           () => _navigateTo(ctx, const PregnancyCalculationScreen())),
       _CatData(
           '🤰',
           LS.get(lang, 'duringPregnancy'),
           LS.get(lang, 'duringPregnancySub'),
+          const [C.darkBlue, C.darkBlue],
           () => _navigateTo(ctx, const DuringPregnancyScreen())),
       _CatData(
           '👶',
           LS.get(lang, 'afterBirth'),
           LS.get(lang, 'afterBirthSub'),
-          () => _navigateTo(ctx, const AfterBirthScreen())),
+          const [C.darkBlue, C.darkBlue],
+          () => _navigateTo(ctx, AfterBirthScreen(
+              childBirthDate: appState.childBirthDate))),
       _CatData(
           '🩺',
           LS.get(lang, 'talkDoctor'),
           LS.get(lang, 'talkDoctorSub'),
-          () => _showComingSoon(ctx, lang)),
+          const [C.darkBlue, C.darkBlue],
+          () => _openDoctorsTab()),
     ];
-    return GridView.count(
-      crossAxisCount: 4,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 10,
-      crossAxisSpacing: 10,
-      childAspectRatio: 0.85,
-      children: List.generate(
-          cats.length,
-          (i) => _CatCard(
-              cat: cats[i], delay: Duration(milliseconds: i * 60))),
-    );
+    return Column(children: [
+      Row(children: [
+        Expanded(
+            child: SizedBox(
+                height: 116,
+                child: _CatCard(cat: cats[0], delay: Duration.zero))),
+        const SizedBox(width: 12),
+        Expanded(
+            child: SizedBox(
+                height: 116,
+                child: _CatCard(
+                    cat: cats[1], delay: const Duration(milliseconds: 70)))),
+      ]),
+      const SizedBox(height: 12),
+      Row(children: [
+        Expanded(
+            child: SizedBox(
+                height: 116,
+                child: _CatCard(
+                    cat: cats[2], delay: const Duration(milliseconds: 140)))),
+        const SizedBox(width: 12),
+        Expanded(
+            child: SizedBox(
+                height: 116,
+                child: _CatCard(
+                    cat: cats[3], delay: const Duration(milliseconds: 210)))),
+      ]),
+    ]);
+  }
+
+  void _openDoctorsTab() {
+    HapticFeedback.lightImpact();
+    widget.onNavigateToTab?.call(1);
   }
 
   void _showComingSoon(BuildContext ctx, AppLang lang) {
@@ -523,125 +406,152 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   }
 
   // ── PREGNANCY CARD ──────────────────────────────────────────────────────────
-  Widget _pregnancyCard(AppLang lang) {
-    final weeks = appState.gaWeeks;
-    final days = appState.gaDays;
-    final progress = ((weeks * 7 + days) / 280).clamp(0.0, 1.0);
-    return AnimatedBuilder(
-      animation: _pulseAnim,
-      builder: (_, child) => Container(
+  Widget _pregnancyCard(AppLang lang, BuildContext context) {
+    if (!appState.hasPregnancyData) {
+      return Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(26),
-          boxShadow: [
-            BoxShadow(
-                color: C.mid.withOpacity(0.18 + _pulseAnim.value * 0.09),
-                blurRadius: 24 + _pulseAnim.value * 6,
-                offset: const Offset(0, 8))
+          color: C.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: C.lightBlue),
+        ),
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(LS.get(lang, 'myPregnancy'),
+                style: const TextStyle(
+                    color: C.darkBlue,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            Text(LS.get(lang, 'pregnancyCalcSub'),
+                style: const TextStyle(color: C.textLight, fontSize: 12)),
+            const SizedBox(height: 14),
+            _flatBtn(
+              label: LS.get(lang, 'calculate'),
+              onTap: () => _navigateTo(context, const PregnancyCalculationScreen()),
+            ),
           ],
         ),
-        child: child,
+      );
+    }
+
+    final weeks = appState.gaWeeks;
+    final days = appState.gaDays;
+    final progress = appState.progress;
+    final wd = WeekRegistry.forWeek(weeks);
+    final trimesterLabel = [
+      LS.get(lang, 'firstTrimester'),
+      LS.get(lang, 'secondTrimester'),
+      LS.get(lang, 'thirdTrimester'),
+    ][appState.trimester - 1];
+    return Container(
+      decoration: BoxDecoration(
+        color: C.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: C.lightBlue),
+        boxShadow: [
+          BoxShadow(
+              color: C.darkBlue.withOpacity(0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 4))
+        ],
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-              colors: [Color(0xFF023E8A), Color(0xFF0096C7), Color(0xFF48CAE4)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight),
-          borderRadius: BorderRadius.circular(26),
-        ),
-        child: Stack(clipBehavior: Clip.hardEdge, children: [
-          _bubble(top: -14, right: -14, size: 100, opacity: 0.07),
-          _bubble(bottom: -22, left: 24, size: 70, opacity: 0.05),
-          Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                              child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                _glowPill('⭐  ${LS.get(lang, 'trimester2')}'),
-                                const SizedBox(height: 9),
-                                Text(LS.get(lang, 'myPregnancy'),
-                                    style: TextStyle(
-                                        color: Colors.white.withOpacity(0.72),
-                                        fontSize: 11),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1),
-                                const SizedBox(height: 3),
-                                Text(
-                                    '$weeks ${LS.get(lang, 'weeksLabel')} + $days ${LS.get(lang, 'daysLabel')}',
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w900),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1),
-                              ])),
-                          const SizedBox(width: 8),
-                          _FloatBabyIcon(pulse: _pulseAnim, float: _float),
-                        ]),
-                    const SizedBox(height: 13),
-                    _babyStats(lang),
-                    const SizedBox(height: 13),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Flexible(
-                              child: Text(LS.get(lang, 'pregnancyProgress'),
-                                  style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.white.withOpacity(0.72)),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1)),
-                          const SizedBox(width: 8),
-                          Text('${(progress * 100).toInt()}%',
+      child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                            _flatPill('⭐  $trimesterLabel'),
+                            const SizedBox(height: 9),
+                            Text(LS.get(lang, 'myPregnancy'),
+                                style: const TextStyle(
+                                    color: C.textLight,
+                                    fontSize: 11),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1),
+                            const SizedBox(height: 3),
+                            Text(
+                                '$weeks ${LS.get(lang, 'weeksLabel')} + $days ${LS.get(lang, 'daysLabel')}',
+                                style: const TextStyle(
+                                    color: C.darkBlue,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w900),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1),
+                          ])),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: C.lightBlue,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                            child: Text(wd.emoji, style: const TextStyle(fontSize: 28))),
+                      ),
+                    ]),
+                const SizedBox(height: 13),
+                _babyStats(lang, wd),
+                const SizedBox(height: 13),
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                          child: Text(LS.get(lang, 'pregnancyProgress'),
                               style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white)),
-                        ]),
-                    const SizedBox(height: 7),
-                    _ProgressBar(value: progress),
-                    const SizedBox(height: 13),
-                    _whiteBtn(
-                        label: LS.get(lang, 'updateDetails'), onTap: () {}),
-                  ])),
-        ]),
-      ),
+                                  fontSize: 11, color: C.textLight),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1)),
+                      const SizedBox(width: 8),
+                      Text('${(progress * 100).toInt()}%',
+                          style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: C.darkBlue)),
+                    ]),
+                const SizedBox(height: 7),
+                _ProgressBar(value: progress),
+                const SizedBox(height: 13),
+                _flatBtn(
+                    label: LS.get(lang, 'updateDetails'),
+                    onTap: () =>
+                        _navigateTo(context, const DuringPregnancyScreen())),
+              ])),
     );
   }
 
-  Widget _glowPill(String t) => Container(
+  Widget _flatPill(String t) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withOpacity(0.20))),
+            color: C.lightBlue,
+            borderRadius: BorderRadius.circular(20)),
         child: Text(t,
-            style: const TextStyle(fontSize: 10, color: Colors.white),
+            style: const TextStyle(
+                fontSize: 10, color: C.darkBlue, fontWeight: FontWeight.w700),
             overflow: TextOverflow.ellipsis,
             maxLines: 1),
       );
 
-  Widget _babyStats(AppLang lang) => Container(
+  Widget _babyStats(AppLang lang, WeekData wd) => Container(
         padding: const EdgeInsets.symmetric(vertical: 11),
         decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.10),
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.white.withOpacity(0.12))),
+            color: C.lightBlue,
+            borderRadius: BorderRadius.circular(12)),
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-          Expanded(child: _stat('📏', LS.get(lang, 'babySize'), '21.5 cm')),
-          Container(
-              width: 1, height: 32, color: Colors.white.withOpacity(0.15)),
-          Expanded(child: _stat('⚖', LS.get(lang, 'babyWeight'), '650 g')),
-          Container(
-              width: 1, height: 32, color: Colors.white.withOpacity(0.15)),
-          Expanded(child: _stat('🥭', LS.get(lang, 'bigAs'), 'Mango')),
+          Expanded(child: _stat('📏', LS.get(lang, 'babySize'), wd.length)),
+          Container(width: 1, height: 32, color: C.darkBlue.withOpacity(0.12)),
+          Expanded(child: _stat('⚖', LS.get(lang, 'babyWeight'), wd.weight)),
+          Container(width: 1, height: 32, color: C.darkBlue.withOpacity(0.12)),
+          Expanded(child: _stat('🥭', LS.get(lang, 'bigAs'), wd.fruit)),
         ]),
       );
 
@@ -649,18 +559,17 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
         Text(emoji, style: const TextStyle(fontSize: 18)),
         const SizedBox(height: 2),
         Text(label,
-            style:
-                TextStyle(fontSize: 9, color: Colors.white.withOpacity(0.72)),
+            style: const TextStyle(fontSize: 9, color: C.textLight),
             overflow: TextOverflow.ellipsis,
             maxLines: 1),
         Text(value,
             style: const TextStyle(
-                fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white),
+                fontSize: 12, fontWeight: FontWeight.w800, color: C.darkBlue),
             overflow: TextOverflow.ellipsis,
             maxLines: 1),
       ]);
 
-  Widget _whiteBtn({required String label, required VoidCallback onTap}) =>
+  Widget _flatBtn({required String label, required VoidCallback onTap}) =>
       GestureDetector(
         onTap: () {
           HapticFeedback.lightImpact();
@@ -670,18 +579,14 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                    color: C.navy.withOpacity(0.26),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4))
-              ]),
+              color: C.darkBlue,
+              borderRadius: BorderRadius.circular(12)),
           child: Center(
               child: Text(label,
                   style: const TextStyle(
-                      color: C.navy, fontSize: 13, fontWeight: FontWeight.w800),
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1)),
         ),
@@ -693,37 +598,19 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
         child: Container(
           padding: const EdgeInsets.all(13),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-                colors: [C.goldLight, Colors.white],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: C.gold.withOpacity(0.26)),
-            boxShadow: [
-              BoxShadow(
-                  color: C.gold.withOpacity(0.09),
-                  blurRadius: 14,
-                  offset: const Offset(0, 4))
-            ],
+            color: C.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: C.lightBlue),
           ),
           child: Row(children: [
             Container(
-              width: 46,
-              height: 46,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                      colors: [Color(0xFFF5A623), Color(0xFFFFD740)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight),
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                        color: C.gold.withOpacity(0.36),
-                        blurRadius: 7,
-                        offset: const Offset(0, 3))
-                  ]),
+                  color: C.lightBlue,
+                  borderRadius: BorderRadius.circular(12)),
               child: const Center(
-                  child: Text('🌟', style: TextStyle(fontSize: 21))),
+                  child: Text('🌟', style: TextStyle(fontSize: 20))),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -734,85 +621,59 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                       style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFF7A4A00)),
+                          color: C.darkBlue),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1),
                   const SizedBox(height: 3),
                   Text(LS.get(lang, 'weekHighlightText'),
                       style: const TextStyle(
-                          fontSize: 11, color: Color(0xFF9B6600), height: 1.4),
+                          fontSize: 11, color: C.textLight, height: 1.4),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis),
                 ])),
             const Icon(Icons.chevron_right_rounded,
-                color: Color(0xFFD4900A), size: 19),
+                color: C.darkBlue, size: 19),
           ]),
         ),
       );
 
   // ── TIP CARD ────────────────────────────────────────────────────────────────
-  Widget _tipCard(AppLang lang) => AnimatedBuilder(
-        animation: _shimmer,
-        builder: (_, child) => Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(21),
-            gradient: SweepGradient(
-                center: Alignment.topLeft,
-                transform: GradientRotation(_shimmer.value * 2 * pi),
-                colors: [
-                  C.mint.withOpacity(0.50),
-                  C.vivid.withOpacity(0.35),
-                  C.gold.withOpacity(0.40),
-                  C.mint.withOpacity(0.50),
-                ]),
+  Widget _tipCard(AppLang lang) => Container(
+        padding: const EdgeInsets.all(13),
+        decoration: BoxDecoration(
+            color: C.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: C.lightBlue)),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+                color: C.lightBlue,
+                borderRadius: BorderRadius.circular(12)),
+            child: const Center(
+                child: Text('💡', style: TextStyle(fontSize: 18))),
           ),
-          padding: const EdgeInsets.all(2),
-          child: child,
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(13),
-          decoration: BoxDecoration(
-              color: C.mintLight, borderRadius: BorderRadius.circular(19)),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Container(
-              width: 43,
-              height: 43,
-              decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                      colors: [Color(0xFF26C6A2), Color(0xFF00796B)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight),
-                  borderRadius: BorderRadius.circular(13),
-                  boxShadow: [
-                    BoxShadow(
-                        color: C.mint.withOpacity(0.36),
-                        blurRadius: 7,
-                        offset: const Offset(0, 3))
-                  ]),
-              child: const Center(
-                  child: Text('💡', style: TextStyle(fontSize: 19))),
-            ),
-            const SizedBox(width: 11),
-            Expanded(
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                  Text(LS.get(lang, 'tipTitle'),
-                      style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF0C5C3A)),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1),
-                  const SizedBox(height: 4),
-                  Text(LS.get(lang, 'tipText'),
-                      style: const TextStyle(
-                          fontSize: 11, color: Color(0xFF277A4E), height: 1.5),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis),
-                ])),
-          ]),
-        ),
+          const SizedBox(width: 11),
+          Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Text(LS.get(lang, 'tipTitle'),
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: C.darkBlue),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1),
+                const SizedBox(height: 4),
+                Text(LS.get(lang, 'tipText'),
+                    style: const TextStyle(
+                        fontSize: 11, color: C.textLight, height: 1.5),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis),
+              ])),
+        ]),
       );
 
   // ── APPOINTMENT CARD ────────────────────────────────────────────────────────
@@ -832,16 +693,13 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
               ]),
           child: Row(children: [
             Container(
-              width: 46,
-              height: 46,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                      colors: [Color(0xFF7B1FA2), Color(0xFFAB47BC)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight),
-                  borderRadius: BorderRadius.circular(14)),
+                  color: C.lightBlue,
+                  borderRadius: BorderRadius.circular(12)),
               child: const Center(
-                  child: Text('📋', style: TextStyle(fontSize: 19))),
+                  child: Text('📋', style: TextStyle(fontSize: 18))),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -882,7 +740,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
               decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [C.navy, C.vivid]),
+                  color: C.darkBlue,
                   borderRadius: BorderRadius.circular(11)),
               child: Text(LS.get(lang, 'viewAll'),
                   style: const TextStyle(
@@ -897,7 +755,9 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   // ── DOCTOR CARD ─────────────────────────────────────────────────────────────
   Widget _doctorCard(AppLang lang) => _FadeInCard(
         delay: const Duration(milliseconds: 100),
-        child: Container(
+        child: GestureDetector(
+          onTap: _openDoctorsTab,
+          child: Container(
           padding: const EdgeInsets.all(13),
           decoration: BoxDecoration(
               color: C.cardBg,
@@ -911,23 +771,14 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
               ]),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Container(
-              width: 54,
-              height: 54,
+              width: 52,
+              height: 52,
               decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                      colors: [Color(0xFF7B1FA2), Color(0xFFAB47BC)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                        color: const Color(0xFFAB47BC).withOpacity(0.35),
-                        blurRadius: 9,
-                        offset: const Offset(0, 4))
-                  ]),
+                  color: C.lightBlue,
+                  borderRadius: BorderRadius.circular(14)),
               child: const Center(
                   child: Icon(Icons.medical_services_rounded,
-                      color: Colors.white, size: 26)),
+                      color: C.darkBlue, size: 24)),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -954,20 +805,13 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                       overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 10),
                   GestureDetector(
-                    onTap: () => HapticFeedback.lightImpact(),
+                    onTap: _openDoctorsTab,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 13, vertical: 8),
                       decoration: BoxDecoration(
-                          gradient:
-                              const LinearGradient(colors: [C.navy, C.vivid]),
-                          borderRadius: BorderRadius.circular(11),
-                          boxShadow: [
-                            BoxShadow(
-                                color: C.vivid.withOpacity(0.35),
-                                blurRadius: 9,
-                                offset: const Offset(0, 3))
-                          ]),
+                          color: C.darkBlue,
+                          borderRadius: BorderRadius.circular(11)),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
                         const Icon(Icons.phone_rounded,
                             size: 12, color: Colors.white),
@@ -983,39 +827,27 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                 ])),
           ]),
         ),
+        ),
       );
 
   // ── FOOTER BANNER ────────────────────────────────────────────────────────────
   Widget _footerBanner(AppLang lang) => Container(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-              colors: [Color(0xFF023E8A), Color(0xFF0096C7), Color(0xFF48CAE4)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight),
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: [
-            BoxShadow(
-                color: C.mid.withOpacity(0.25),
-                blurRadius: 16,
-                offset: const Offset(0, 6))
-          ],
+          color: C.darkBlue,
+          borderRadius: BorderRadius.circular(16),
         ),
-        child: Stack(clipBehavior: Clip.hardEdge, children: [
-          _bubble(top: -14, right: -14, size: 74, opacity: 0.06),
-          _bubble(bottom: -8, left: 20, size: 48, opacity: 0.05),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 18),
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _footerItem('👩', LS.get(lang, 'healthyMother')),
-                  Container(width: 1, height: 30, color: Colors.white24),
-                  _footerItem('👶', LS.get(lang, 'healthyChild')),
-                  Container(width: 1, height: 30, color: Colors.white24),
-                  _footerItem('👨‍👩‍👦', LS.get(lang, 'happyFamily')),
-                ]),
-          ),
-        ]),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _footerItem('👩', LS.get(lang, 'healthyMother')),
+                Container(width: 1, height: 30, color: Colors.white24),
+                _footerItem('👶', LS.get(lang, 'healthyChild')),
+                Container(width: 1, height: 30, color: Colors.white24),
+                _footerItem('👨‍👩‍👦', LS.get(lang, 'happyFamily')),
+              ]),
+        ),
       );
 
   Widget _footerItem(String emoji, String label) => Column(children: [
@@ -1054,33 +886,13 @@ Widget _bubble(
     );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DASHED PAINTER
-// ─────────────────────────────────────────────────────────────────────────────
-class _DashPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    const dashH = 5.0, gapH = 4.0;
-    final paint = Paint()
-      ..color = C.pale
-      ..strokeWidth = 1.5;
-    double y = 0;
-    while (y < size.height) {
-      canvas.drawLine(Offset(0, y), Offset(0, y + dashH), paint);
-      y += dashH + gapH;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter _) => false;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // CATEGORY DATA + CARD
 // ─────────────────────────────────────────────────────────────────────────────
 class _CatData {
   final String emoji, title, sub;
+  final List<Color> grad;
   final VoidCallback onTap;
-  const _CatData(this.emoji, this.title, this.sub, this.onTap);
+  const _CatData(this.emoji, this.title, this.sub, this.grad, this.onTap);
 }
 
 class _CatCard extends StatefulWidget {
@@ -1139,33 +951,33 @@ class _CatCardState extends State<_CatCard>
                 duration: const Duration(milliseconds: 90),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: C.vivid.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: C.vivid.withOpacity(0.12)),
-                    boxShadow: [
-                      BoxShadow(
-                          color: C.vivid.withOpacity(_pressed ? 0.02 : 0.05),
-                          blurRadius: _pressed ? 4 : 10,
-                          offset: Offset(0, _pressed ? 2 : 4))
-                    ],
+                    color: C.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: C.lightBlue),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
                     child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(widget.cat.emoji,
-                              style: const TextStyle(fontSize: 32)),
-                          const SizedBox(height: 8),
+                              style: const TextStyle(fontSize: 19)),
+                          const SizedBox(height: 5),
                           Text(widget.cat.title,
-                              textAlign: TextAlign.center,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: C.navy,
-                                  height: 1.1)),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: C.darkBlue,
+                                  height: 1.2)),
+                          const SizedBox(height: 2),
+                          Text(widget.cat.sub,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 10, color: C.textLight)),
                         ]),
                   ),
                 ),
@@ -1215,20 +1027,14 @@ class _ProgressBarState extends State<_ProgressBar>
         builder: (_, __) => Container(
           height: 9,
           decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(9)),
+              color: C.lightBlue, borderRadius: BorderRadius.circular(9)),
           child: FractionallySizedBox(
             alignment: Alignment.centerLeft,
             widthFactor: _a.value.clamp(0.0, 1.0),
             child: Container(
                 decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                        colors: [Color(0xFF90CAF9), Colors.white]),
-                    borderRadius: BorderRadius.circular(9),
-                    boxShadow: [
-                  BoxShadow(
-                      color: Colors.white.withOpacity(0.50), blurRadius: 7)
-                ])),
+                    color: C.darkBlue,
+                    borderRadius: BorderRadius.circular(9))),
           ),
         ),
       );
@@ -1357,4 +1163,45 @@ class _FadeInCardState extends State<_FadeInCard>
   Widget build(BuildContext context) => FadeTransition(
       opacity: _fade,
       child: SlideTransition(position: _slide, child: widget.child));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMING SOON BODY  (used for placeholder sub-screens)
+// ─────────────────────────────────────────────────────────────────────────────
+class _ComingSoonBody extends StatelessWidget {
+  const _ComingSoonBody();
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<AppLang>(
+      valueListenable: langNotifier,
+      builder: (_, lang, __) => Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Container(
+              width: 90,
+              height: 90,
+              decoration: BoxDecoration(
+                  color: C.frost,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(color: C.mid.withOpacity(0.15), blurRadius: 22)
+                  ]),
+              child: const Center(
+                  child: Text('🚧', style: TextStyle(fontSize: 40))),
+            ),
+            const SizedBox(height: 20),
+            Text(LS.get(lang, 'comingSoon'),
+                style: const TextStyle(
+                    color: C.navy, fontSize: 21, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 8),
+            Text(LS.get(lang, 'comingSoonDesc'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    color: C.textMid, fontSize: 13, height: 1.6)),
+          ]),
+        ),
+      ),
+    );
+  }
 }

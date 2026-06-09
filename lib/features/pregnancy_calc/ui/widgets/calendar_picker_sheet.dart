@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../../../models/models.dart';
-import '../logic/constants.dart';
-import '../logic/ethiopian_calendar.dart';
+import 'package:lije/core/l10n/strings.dart';
+import 'package:lije/features/pregnancy_calc/services/calculator_constants.dart';
+import 'package:lije/features/pregnancy_calc/services/ethiopian_calendar.dart';
 
 class CalendarPickerSheet extends StatefulWidget {
   final DateTime initialDate;
@@ -159,7 +159,7 @@ class CalendarPickerSheetState extends State<CalendarPickerSheet>
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                              color: BC.primary.withOpacity(0.30),
+                              color: BC.primary.withValues(alpha: 0.30),
                               blurRadius: 8,
                               offset: const Offset(0, 3))
                         ],
@@ -200,7 +200,7 @@ class CalendarPickerSheetState extends State<CalendarPickerSheet>
                       decoration: BoxDecoration(
                         gradient: LinearGradient(colors: [
                           BC.primaryPale,
-                          BC.primaryFrost.withOpacity(0.5),
+                          BC.primaryFrost.withValues(alpha: 0.5),
                           BC.primaryPale,
                         ]),
                         borderRadius: BorderRadius.circular(1),
@@ -292,7 +292,7 @@ class CalendarPickerSheetState extends State<CalendarPickerSheet>
           boxShadow: active
               ? [
                   BoxShadow(
-                      color: BC.primary.withOpacity(0.3),
+                      color: BC.primary.withValues(alpha: 0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2))
                 ]
@@ -547,7 +547,7 @@ class CalendarPickerSheetState extends State<CalendarPickerSheet>
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                        color: selectedColor.withOpacity(0.40),
+                        color: selectedColor.withValues(alpha: 0.40),
                         blurRadius: 10,
                         offset: const Offset(0, 3))
                   ]
@@ -588,9 +588,10 @@ class CalendarPickerSheetState extends State<CalendarPickerSheet>
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [bg, bg.withOpacity(0.7)]),
+          gradient: LinearGradient(
+              colors: [bg, bg.withValues(alpha: 0.7)]),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: textColor.withOpacity(0.25)),
+          border: Border.all(color: textColor.withValues(alpha: 0.25)),
         ),
         child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           Text(icon, style: const TextStyle(fontSize: 16)),
@@ -620,7 +621,8 @@ class CalendarPickerSheetState extends State<CalendarPickerSheet>
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: BC.border),
           boxShadow: [
-            BoxShadow(color: BC.primary.withOpacity(0.08), blurRadius: 4)
+            BoxShadow(
+                color: BC.primary.withValues(alpha: 0.08), blurRadius: 4)
           ],
         ),
         child: Icon(icon, size: 20, color: BC.primaryDeep),

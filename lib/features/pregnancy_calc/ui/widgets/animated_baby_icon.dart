@@ -44,7 +44,7 @@ class _AnimatedBabyIconState extends State<AnimatedBabyIcon>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                        color: Colors.white.withOpacity(_glow.value),
+                        color: Colors.white.withValues(alpha: _glow.value),
                         blurRadius: 18,
                         spreadRadius: 4)
                   ],
@@ -54,7 +54,7 @@ class _AnimatedBabyIconState extends State<AnimatedBabyIcon>
                 height: 64,
                 decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.15))),
+                    color: Colors.white.withValues(alpha: 0.15))),
             SizedBox(
                 width: 52,
                 height: 52,
@@ -74,7 +74,7 @@ class BabyPainter extends CustomPainter {
   void paint(Canvas canvas, Size s) {
     final paint = Paint()
       ..isAntiAlias = true
-      ..color = Colors.white.withOpacity(0.95);
+      ..color = Colors.white.withValues(alpha: 0.95);
     canvas.drawCircle(
         Offset(s.width * 0.5, s.height * 0.32), s.width * 0.2, paint);
     final body = Path();
@@ -85,7 +85,7 @@ class BabyPainter extends CustomPainter {
         s.height * 0.53, s.width * 0.5, s.height * 0.50);
     canvas.drawPath(body, paint);
     paint
-      ..color = Colors.white.withOpacity(0.65)
+      ..color = Colors.white.withValues(alpha: 0.65)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.2
       ..strokeCap = StrokeCap.round;

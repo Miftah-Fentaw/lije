@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../logic/constants.dart';
+import 'package:lije/features/pregnancy_calc/services/calculator_constants.dart';
 
 class GlassCard extends StatelessWidget {
   final Widget child;
@@ -14,7 +14,7 @@ class GlassCard extends StatelessWidget {
           border: Border.all(color: BC.borderLight, width: 1.5),
           boxShadow: [
             BoxShadow(
-                color: BC.primary.withOpacity(0.06),
+                color: BC.primary.withValues(alpha: 0.06),
                 blurRadius: 14,
                 offset: const Offset(0, 4))
           ],
@@ -40,7 +40,7 @@ class GlassBtn extends StatelessWidget {
             border: Border.all(color: BC.border),
             boxShadow: [
               BoxShadow(
-                  color: BC.primary.withOpacity(0.08),
+                  color: BC.primary.withValues(alpha: 0.08),
                   blurRadius: 6,
                   offset: const Offset(0, 2))
             ],
