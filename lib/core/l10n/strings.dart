@@ -79,7 +79,7 @@ class LS {
       'onlineLabel': 'Online',
       'weeklyHighlight': 'Week Highlight',
       'weekHighlightText':
-          'Your baby can now hear your voice! Talk and sing to strengthen your bond.',
+          'Your baby can now hear your voice. Talk and sing to strengthen your bond.',
       'upcomingAppt': 'Next Appointment',
       'apptDate': 'Mon, Jun 9 — 10:00 AM',
       'apptDoctor': 'Dr. Selamawit Bekele',
@@ -90,10 +90,10 @@ class LS {
       'couponCode': 'HEALTH TIP',
       'couponTitle': "Today's Tip",
       'couponDesc': 'Stay hydrated — drink water daily and eat iron-rich foods.',
-      'couponOff': '💡',
+      'couponOff': '',
       'couponOffLabel': 'For you',
       'marqueeText':
-          'New week guides!  ·  Talk to a doctor  ·  Track growth  ·  ',
+          'New week guides  ·  Talk to a doctor  ·  Track growth  ·  ',
       'categoriesTitle': 'Categories',
       'shopTitle': 'Shop',
       'discoverTitle': 'Discover',
@@ -133,7 +133,7 @@ class LS {
           'Yes. Use the language dropdown on the home screen header or go to Settings → App Preferences.',
       'urlOpenError': 'Could not open link. Please try again.',
       'comingSoon': 'Coming Soon',
-      'comingSoonDesc': 'This section is under development.\nStay tuned!',
+      'comingSoonDesc': 'This section is under development.\nStay tuned.',
 
       // ── Pregnancy Calculator ──────────────────────────────────────────────────
       'pregnancyCalcTitle': 'Pregnancy Calculator',
@@ -155,8 +155,8 @@ class LS {
       'extraDays': 'Extra Days',
       'ivfDate': 'Embryo Transfer Date',
       'embryoAge': 'Embryo Age at Transfer',
-      'day3Embryo': '🔬  Day 3 Cleavage',
-      'day5Embryo': '🧫  Day 5 Blastocyst',
+      'day3Embryo': 'Day 3 Cleavage',
+      'day5Embryo': 'Day 5 Blastocyst',
       'selectDate': 'Select a date',
       'calculate': 'Calculate Due Date',
       'calculateAgain': 'Calculate Again',
@@ -189,6 +189,13 @@ class LS {
       'ethiopian': 'Ethiopian',
       'cancel': 'Cancel',
       'ok': 'Confirm',
+      'confirmUpdateTitle': 'Update saved data?',
+      'confirmUpdateBody':
+          'This will replace your previously saved information and update your reminders.',
+      'logout': 'Log out',
+      'logoutConfirmTitle': 'Log out?',
+      'logoutConfirmBody':
+          'You will need to sign in again to access your saved data.',
 
       // ── Result card ──────────────────────────────────────────────────────────
       'expectedDueDate': 'Expected Due Date',
@@ -196,7 +203,7 @@ class LS {
       'dueDateEdd': 'Due Date (EDD)',
       'babyAgeToday': 'Baby\'s Age Today',
       'daysUntilDue': 'Days Until Due',
-      'todayIsDueDate': '🎉 Today is your due date!',
+      'todayIsDueDate': 'Today is your due date',
       'daysOverdue': 'days overdue',
       'daysRemaining': 'days remaining',
       'trimester': 'Current Trimester',
@@ -209,13 +216,13 @@ class LS {
       'weeksRange2': 'Wks 14–26',
       'weeksRange3': 'Wks 27–40',
       'tipFirst':
-          '💊 Take folic acid daily. Avoid alcohol, tobacco and raw foods. Attend all scheduled visits.',
+          'Take folic acid daily. Avoid alcohol, tobacco and raw foods. Attend all scheduled visits.',
       'tipSecond':
-          '🥗 Eat iron-rich foods (lentils, spinach, red meat) to prevent anaemia. Stay active with gentle walking.',
+          'Eat iron-rich foods (lentils, spinach, red meat) to prevent anaemia. Stay active with gentle walking.',
       'tipThird':
-          '🏥 Pack your hospital bag. Learn labour signs. Sleep on your left side for best blood flow.',
+          'Pack your hospital bag. Learn labour signs. Sleep on your left side for best blood flow.',
       'tipOverdue':
-          '⏰ You are past your due date. Contact your healthcare provider today to discuss next steps.',
+          'You are past your due date. Contact your healthcare provider today to discuss next steps.',
       'notifyMe': 'Remind me',
       'reminderActive': 'Reminders on',
       'notifyOnDesc': 'Weekly tips, trimester & due-date alerts',
@@ -273,6 +280,8 @@ class LS {
       'authPhoneRequired': 'Please enter your phone number',
       'authPhoneInvalidLength': 'Phone number must be 8 digits',
       'authNoMatch': 'No matching account found. Please sign up.',
+      'authPhoneTaken': 'This phone number is already registered. Please log in instead.',
+      'authNetworkError': 'Network error. Please check your connection and try again.',
     },
 
     // ── አማርኛ ─────────────────────────────────────────────────────────────────
@@ -328,7 +337,7 @@ class LS {
       'daysLabel': 'ቀን',
       'onlineLabel': 'ይፋ',
       'weeklyHighlight': 'ሳምንታዊ ዜና',
-      'weekHighlightText': 'ህፃኑ አሁን ድምፅዎን ሊሰማ ይችሉ ናቸው!',
+      'weekHighlightText': 'ህፃኑ አሁን ድምፅዎን ሊሰማ ይችሉ ናቸው።',
       'upcomingAppt': 'ሚቀጥለው ቀጠሮ',
       'apptDate': 'ሰኞ ሰኔ 9 — ጠ10:00',
       'apptDoctor': 'ዶ/ር ሰላማዊት በቀለ',
@@ -339,9 +348,9 @@ class LS {
       'couponCode': 'የጤና ምክር',
       'couponTitle': 'የዛሬ ምክር',
       'couponDesc': 'ቢያንስ 8 ብርጭቆ ውሃ ይጠጡ። ምስር እና ስፒናች ይብሉ።',
-      'couponOff': '💡',
+      'couponOff': '',
       'couponOffLabel': 'ለእርስዎ',
-      'marqueeText': 'አዲስ ሳምንታዊ!  ·  ዶክተር ይጠይቁ  ·  ',
+      'marqueeText': 'አዲስ ሳምንታዊ  ·  ዶክተር ይጠይቁ  ·  ',
       'categoriesTitle': 'ምድቦች',
       'shopTitle': 'ሱቅ',
       'discoverTitle': 'ፈልግ',
@@ -351,7 +360,7 @@ class LS {
       'minRead': 'ደቂቃ',
       'profileTitle': 'መገለጫ',
       'comingSoon': 'በቅርቡ',
-      'comingSoonDesc': 'ይህ ክፍል በልማት ላይ ነው።\nጠብቁ!',
+      'comingSoonDesc': 'ይህ ክፍል በልማት ላይ ነው።\nጠብቁ።',
 
       // ── Pregnancy Calculator ──────────────────────────────────────────────────
       'pregnancyCalcTitle': 'የእርግዝና ካልኩሌተር',
@@ -370,8 +379,8 @@ class LS {
       'extraDays': 'ተጨማሪ ቀናት',
       'ivfDate': 'የፅንሱ ሽግግር ቀን',
       'embryoAge': 'የፅንሱ ዕድሜ ሲሸጋገሩ',
-      'day3Embryo': '🔬  ቀን 3 Cleavage',
-      'day5Embryo': '🧫  ቀን 5 Blastocyst',
+      'day3Embryo': 'ቀን 3 Cleavage',
+      'day5Embryo': 'ቀን 5 Blastocyst',
       'selectDate': 'ቀን ይምረጡ',
       'calculate': 'የወሊድ ቀን አሰሉ',
       'calculateAgain': 'እንደገና አሰሉ',
@@ -395,6 +404,11 @@ class LS {
       'ethiopian': 'ኢትዮጵያ',
       'cancel': 'ሰርዝ',
       'ok': 'አረጋግጥ',
+      'confirmUpdateTitle': 'የተቀመጠውን መረጃ ያዘምኑ?',
+      'confirmUpdateBody': 'ይህ ቀደም ሲል የተቀመጠውን መረጃ ይተካና ማስታወሻዎችን ያዘምናል።',
+      'logout': 'ውጣ',
+      'logoutConfirmTitle': 'መውጣት ይፈልጋሉ?',
+      'logoutConfirmBody': 'ወደ ተቀመጠው መረጃዎ ለመድረስ እንደገና መግባት ይኖርብዎታል።',
 
       // ── Result card ──────────────────────────────────────────────────────────
       'expectedDueDate': 'የሚጠበቅ የወሊድ ቀን',
@@ -402,7 +416,7 @@ class LS {
       'dueDateEdd': 'የወሊድ ቀን (EDD)',
       'babyAgeToday': 'የሕፃን ዕድሜ ዛሬ',
       'daysUntilDue': 'እስከ ወሊድ ቀን ቀሪ',
-      'todayIsDueDate': '🎉 ዛሬ የወሊድ ቀን ነው!',
+      'todayIsDueDate': 'ዛሬ የወሊድ ቀን ነው',
       'daysOverdue': 'ቀን ካለፈ',
       'daysRemaining': 'ቀናት ቀሪ',
       'trimester': 'አሁን ያለው ትሪሜስተር',
@@ -414,10 +428,10 @@ class LS {
       'weeksRange1': 'ሳም 1–13',
       'weeksRange2': 'ሳም 14–26',
       'weeksRange3': 'ሳም 27–40',
-      'tipFirst': '💊 ፎሊክ አሲድ ይዙ። አልኮሆልና ሲጋራ ያስወግዱ። ሁሉ ቀጠሮ ይናዘዙ።',
-      'tipSecond': '🥗 ምስር፣ ስፒናች፣ ስጋ ይብሉ። ቀሉ ደምን ይከላከሉ። ቀሉ ምጥ ይሂዱ።',
-      'tipThird': '🏥 ሆስፒታሉ ቦርሳ ያዘጋጁ። የወሊድ ምልክቶችን ይወቁ። ግራ ጎን ያርፉ።',
-      'tipOverdue': '⏰ የወሊድ ቀን አልፏሉ። ዛሬ ሐኪምዎን ያናግሩ።',
+      'tipFirst': 'ፎሊክ አሲድ ይዙ። አልኮሆልና ሲጋራ ያስወግዱ። ሁሉ ቀጠሮ ይናዘዙ።',
+      'tipSecond': 'ምስር፣ ስፒናች፣ ስጋ ይብሉ። ቀሉ ደምን ይከላከሉ። ቀሉ ምጥ ይሂዱ።',
+      'tipThird': 'ሆስፒታሉ ቦርሳ ያዘጋጁ። የወሊድ ምልክቶችን ይወቁ። ግራ ጎን ያርፉ።',
+      'tipOverdue': 'የወሊድ ቀን አልፏሉ። ዛሬ ሐኪምዎን ያናግሩ።',
     },
 
     // ── Afaan Oromoo ─────────────────────────────────────────────────────────
@@ -473,7 +487,7 @@ class LS {
       'daysLabel': 'guyyaa',
       'onlineLabel': 'Jiru',
       'weeklyHighlight': 'Oduu Torbanii',
-      'weekHighlightText': "Daa'imni kee sagalee kee dhagahuu dandaa!",
+      'weekHighlightText': "Daa'imni kee sagalee kee dhagahuu dandaa.",
       'upcomingAppt': 'Beellama',
       'apptDate': 'Wiixata Wax 9 — 10:00',
       'apptDoctor': 'Dr. Selamawit Bekele',
@@ -484,9 +498,9 @@ class LS {
       'couponCode': 'Gorsa Fayyaa',
       'couponTitle': "Gorsa Har'aa",
       'couponDesc': 'Bishaan gaa\'ilaa 8 dhugaa. Miseensaa fi spinach nyaadhu.',
-      'couponOff': '💡',
+      'couponOff': '',
       'couponOffLabel': 'Siif',
-      'marqueeText': 'Qajeelfama haaraa!  ·  Doktora gaafadhu  ·  ',
+      'marqueeText': 'Qajeelfama haaraa  ·  Doktora gaafadhu  ·  ',
       'categoriesTitle': 'Kutaalee',
       'shopTitle': 'Gabaa',
       'discoverTitle': 'Barbaadi',
@@ -496,7 +510,7 @@ class LS {
       'minRead': 'daq',
       'profileTitle': 'Eenyummaa',
       'comingSoon': 'Itti Aanee',
-      'comingSoonDesc': 'Kutaan kun hojjetamaa jira.\nEegi!',
+      'comingSoonDesc': 'Kutaan kun hojjetamaa jira.\nEegi.',
 
       // ── Pregnancy Calculator ──────────────────────────────────────────────────
       'pregnancyCalcTitle': 'Herrega Ulfaa',
@@ -517,8 +531,8 @@ class LS {
       'extraDays': 'Guyyaalee dabalataa',
       'ivfDate': 'Guyyaa Jijjiiruu Embryoo',
       'embryoAge': 'Umurii Embryoo Yeroo Jijjiiramu',
-      'day3Embryo': '🔬  Guyyaa 3 Cleavage',
-      'day5Embryo': '🧫  Guyyaa 5 Blastocyst',
+      'day3Embryo': 'Guyyaa 3 Cleavage',
+      'day5Embryo': 'Guyyaa 5 Blastocyst',
       'selectDate': 'Guyyaa filadhu',
       'calculate': 'Guyyaa Dhalootaa Herreegi',
       'calculateAgain': 'Ammas Herreegi',
@@ -551,6 +565,13 @@ class LS {
       'ethiopian': 'Itoophiyaa',
       'cancel': 'Haqi',
       'ok': 'Mirkaneessi',
+      'confirmUpdateTitle': 'Daataa olkaa\'ame haaromsuu?',
+      'confirmUpdateBody':
+          'Kun odeeffannoo dur olkaa\'ame bakka buusee yaadachiisawwan kee haaromsa.',
+      'logout': 'Ba\'i',
+      'logoutConfirmTitle': 'Bahuu barbaaddaa?',
+      'logoutConfirmBody':
+          'Daataa kee argachuuf ammas seenuu si barbaachisa.',
 
       // ── Result card ──────────────────────────────────────────────────────────
       'expectedDueDate': 'Guyyaa Dhalootaa Eegamu',
@@ -558,7 +579,7 @@ class LS {
       'dueDateEdd': 'Guyyaa Dhalootaa (EDD)',
       'babyAgeToday': "Umurii Daa'ima Har'aa",
       'daysUntilDue': 'Guyyaalee Hafan',
-      'todayIsDueDate': '🎉 Guyyaan dhalootaa har\'a dha!',
+      'todayIsDueDate': 'Guyyaan dhalootaa har\'a dha',
       'daysOverdue': 'guyyaa darbe',
       'daysRemaining': 'guyyaa hafan',
       'trimester': 'Gilgaala Ammaa',
@@ -571,13 +592,13 @@ class LS {
       'weeksRange2': 'Torb 14–26',
       'weeksRange3': 'Torb 27–40',
       'tipFirst':
-          '💊 Folic acid guyyaa guyyaa dhugi. Alkoolii fi sigaaraa irraa fagaadhu. Beellamiiwwan hunda hordofi.',
+          'Folic acid guyyaa guyyaa dhugi. Alkoolii fi sigaaraa irraa fagaadhu. Beellamiiwwan hunda hordofi.',
       'tipSecond':
-          '🥗 Nyaata biroo (adamsii, spinach, foon) nyaadhu. Deemsa salphaa godhi.',
+          'Nyaata biroo (adamsii, spinach, foon) nyaadhu. Deemsa salphaa godhi.',
       'tipThird':
-          '🏥 Saantoo hospitaalaa guuti. Mallattoo dhalootaa beeki. Gama bitaa ciisi.',
+          'Saantoo hospitaalaa guuti. Mallattoo dhalootaa beeki. Gama bitaa ciisi.',
       'tipOverdue':
-          '⏰ Guyyaan dhalootaa darbee jira. Dokitara kee har\'a qunnamti.',
+          'Guyyaan dhalootaa darbee jira. Dokitara kee har\'a qunnamti.',
     },
   };
 }

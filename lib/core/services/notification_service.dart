@@ -1,5 +1,7 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart' show IconData, Icons;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:lije/core/l10n/strings.dart';
 import 'package:lije/features/during_pregnancy/models/week_registry.dart';
 import 'package:lije/features/home/models/app_state.dart';
@@ -15,7 +17,11 @@ class NotificationService {
 
   static bool _ready = false;
 
-  static const weeklyId = 100;
+  /// Weekly pregnancy-tip notifications use ids `weeklyBaseId + week`
+  /// for week = 1..maxPregnancyWeeks.
+  static const weeklyBaseId = 1000;
+  static const maxPregnancyWeeks = 40;
+
   static const trimester2Id = 201;
   static const trimester3Id = 202;
   static const edd14Id = 301;
@@ -27,6 +33,13 @@ class NotificationService {
   static const babyMonth2Id = 503;
   static const babyMonth6Id = 504;
   static const babyMonth12Id = 505;
+
+  /// Id used by android_alarm_manager_plus for the daily reschedule alarm.
+  /// `rescheduleOnReboot: true` makes the plugin re-arm this alarm (and run
+  /// [_backgroundRescheduleCallback] again) automatically after the device
+  /// restarts, which in turn re-schedules every flutter_local_notifications
+  /// alarm above.
+  static const rebootAlarmId = 9001;
 
   static Future<void> init() async {
     if (_ready) return;
@@ -42,11 +55,19 @@ class NotificationService {
   }
 
   /// Safe post-launch setup: permissions + rescheduling must not block app open.
+  ///
+  /// Runs on every app start, including the first launch after a reinstall —
+  /// [AppState.load] reads any pregnancy/baby data still present in
+  /// SharedPreferences and [rescheduleAll] re-creates every OS-level alarm
+  /// from that data (the alarms themselves do not survive an uninstall, but
+  /// the data does if the user restores from the same SharedPreferences
+  /// store / app backup).
   static Future<void> startup(AppState state) async {
     try {
       await init();
       await requestPermissions();
       await rescheduleAll(state);
+      await _registerBackgroundReschedule();
     } catch (_) {
       // Keep the app usable even if notifications fail on this device.
     }
@@ -58,6 +79,27 @@ class NotificationService {
         AndroidFlutterLocalNotificationsPlugin>();
     await androidPlugin?.requestNotificationsPermission();
     await androidPlugin?.requestExactAlarmsPermission();
+  }
+
+  /// Registers a recurring background alarm (via android_alarm_manager_plus)
+  /// that re-runs [rescheduleAll]. Because it is registered with
+  /// `rescheduleOnReboot: true`, Android automatically re-arms it after the
+  /// device reboots, which re-schedules all pregnancy/baby notifications even
+  /// if they were lost on restart.
+  static Future<void> _registerBackgroundReschedule() async {
+    try {
+      await AndroidAlarmManager.initialize();
+      await AndroidAlarmManager.periodic(
+        const Duration(hours: 24),
+        rebootAlarmId,
+        backgroundRescheduleCallback,
+        exact: true,
+        wakeup: true,
+        rescheduleOnReboot: true,
+      );
+    } catch (_) {
+      // android_alarm_manager_plus is Android-only; ignore on other platforms.
+    }
   }
 
   static Future<void> rescheduleAll(AppState state) async {
@@ -72,7 +114,7 @@ class NotificationService {
           state.pregnancyRemindersEnabled &&
           state.lnmp != null &&
           state.edd != null) {
-        await _scheduleWeeklyPregnancy(state, lang);
+        await _scheduleWeeklyPregnancyTips(state, lang);
         await _scheduleTrimesterMilestones(state, lang);
         await _scheduleEddReminders(state, lang);
       }
@@ -88,7 +130,7 @@ class NotificationService {
   static Future<void> cancelAll() async {
     if (!_ready) return;
     for (final id in [
-      weeklyId,
+      for (var week = 1; week <= maxPregnancyWeeks; week++) weeklyBaseId + week,
       trimester2Id,
       trimester3Id,
       edd14Id,
@@ -214,28 +256,26 @@ class NotificationService {
     }
   }
 
-  static Future<void> _scheduleWeeklyPregnancy(
+  /// Schedules one tip notification per gestational week (1..[maxPregnancyWeeks]),
+  /// each firing on the day that week begins (LNMP + week*7 days). Past dates
+  /// are skipped automatically by [_scheduleOneShot].
+  static Future<void> _scheduleWeeklyPregnancyTips(
       AppState state, AppLang lang) async {
-    final wd = WeekRegistry.forWeek(state.gaWeeks);
-    final tip = wd.tip[lang] ?? wd.tip[AppLang.english]!;
-    final summary = tip.split('.').first.trim();
-    await _zonedSchedule(
-      id: weeklyId,
-      title: LS.get(lang, 'reminderWeeklyTitle'),
-      body: '${LS.get(lang, 'weeksLabel')} ${state.gaWeeks}: $summary.',
-      scheduledDate: _nextSundayAt(9),
-      details: NotificationDetails(
-        android: AndroidNotificationDetails(
-          'pregnancy_weekly',
-          LS.get(lang, 'notificationsSetting'),
-          channelDescription: LS.get(lang, 'notificationsDesc'),
-          importance: Importance.high,
-          priority: Priority.high,
-        ),
-        iOS: const DarwinNotificationDetails(),
-      ),
-      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
-    );
+    final lnmp = state.lnmp!;
+    for (var week = 1; week <= maxPregnancyWeeks; week++) {
+      final wd = WeekRegistry.forWeek(week);
+      final tip = wd.tip[lang] ?? wd.tip[AppLang.english]!;
+      final summary = tip.split('.').first.trim();
+      final date = lnmp.add(Duration(days: week * 7));
+      await _scheduleOneShot(
+        weeklyBaseId + week,
+        date,
+        LS.get(lang, 'reminderWeeklyTitle'),
+        '${LS.get(lang, 'weeksLabel')} $week: $summary.',
+        'pregnancy_weekly',
+        lang,
+      );
+    }
   }
 
   static Future<void> _scheduleTrimesterMilestones(
@@ -340,18 +380,22 @@ class NotificationService {
         ? local.add(const Duration(days: 1))
         : local;
   }
+}
 
-  static tz.TZDateTime _nextSundayAt(int hour) {
-    var next = tz.TZDateTime.now(tz.local);
-    while (next.weekday != DateTime.sunday) {
-      next = next.add(const Duration(days: 1));
-    }
-    next = tz.TZDateTime(tz.local, next.year, next.month, next.day, hour);
-    if (next.isBefore(tz.TZDateTime.now(tz.local))) {
-      next = next.add(const Duration(days: 7));
-    }
-    return next;
-  }
+/// Entry point for the recurring background alarm registered by
+/// [NotificationService._registerBackgroundReschedule].
+///
+/// android_alarm_manager_plus runs this in its own background isolate, so it
+/// re-initializes the Flutter bindings, reloads [AppState] from
+/// SharedPreferences, and re-schedules every notification. Because the alarm
+/// is registered with `rescheduleOnReboot: true`, this also runs again after
+/// a device restart, restoring all pregnancy/baby notifications.
+@pragma('vm:entry-point')
+void backgroundRescheduleCallback() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final state = AppState();
+  await state.load();
+  await NotificationService.rescheduleAll(state);
 }
 
 class ScheduledReminderInfo {
