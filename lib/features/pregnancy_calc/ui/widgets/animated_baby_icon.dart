@@ -62,8 +62,9 @@ class _AnimatedBabyIconState extends State<AnimatedBabyIcon>
             Positioned(
                 top: 4,
                 right: 4,
-                child: Text('💕',
-                    style: TextStyle(fontSize: 10 + _float.value * 0.1))),
+                child: Icon(Icons.favorite,
+                    size: 10 + _float.value * 0.1,
+                    color: Colors.pinkAccent)),
           ]),
         ),
       );

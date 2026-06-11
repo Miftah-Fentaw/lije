@@ -164,7 +164,8 @@ class CalendarPickerSheetState extends State<CalendarPickerSheet>
                               offset: const Offset(0, 3))
                         ],
                       ),
-                      child: const Text('📅', style: TextStyle(fontSize: 18)),
+                      child: const Icon(Icons.calendar_today_rounded,
+                          size: 18, color: Colors.white),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -371,7 +372,7 @@ class CalendarPickerSheetState extends State<CalendarPickerSheet>
         if (_gregSelected != null) ...[
           const SizedBox(height: 14),
           _selectedDisplay(
-              icon: '🌍',
+              icon: Icons.public_rounded,
               label: _fmtDate(_gregSelected!),
               bg: BC.primaryFrost,
               textColor: BC.primary),
@@ -428,7 +429,7 @@ class CalendarPickerSheetState extends State<CalendarPickerSheet>
         if (_etDay != null) ...[
           const SizedBox(height: 14),
           _selectedDisplay(
-              icon: '🇪🇹',
+              icon: Icons.flag_rounded,
               label: '${months[_etMonth - 1]} $_etDay $_etYear',
               bg: BC.lavenderLight,
               textColor: BC.lavender),
@@ -574,7 +575,7 @@ class CalendarPickerSheetState extends State<CalendarPickerSheet>
   }
 
   Widget _selectedDisplay(
-      {required String icon,
+      {required IconData icon,
       required String label,
       required Color bg,
       required Color textColor}) {
@@ -594,7 +595,7 @@ class CalendarPickerSheetState extends State<CalendarPickerSheet>
           border: Border.all(color: textColor.withValues(alpha: 0.25)),
         ),
         child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text(icon, style: const TextStyle(fontSize: 16)),
+          Icon(icon, size: 16, color: textColor),
           const SizedBox(width: 8),
           Flexible(
               child: Text(label,

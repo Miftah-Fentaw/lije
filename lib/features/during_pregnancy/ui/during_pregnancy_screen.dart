@@ -6,6 +6,7 @@ import 'package:lije/core/services/notification_service.dart';
 import 'package:lije/features/home/models/app_state.dart';
 import 'package:lije/models/models.dart';
 import 'package:lije/core/widgets/feature_app_bar.dart';
+import 'package:lije/core/widgets/confirm_dialog.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LOCAL DESIGN TOKENS  (mapped to app theme)
@@ -365,7 +366,8 @@ class _PickerDialogState extends State<_PickerDialog>
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            const Text('🗓️', style: TextStyle(fontSize: 20)),
+            const Icon(Icons.event_note_rounded,
+                size: 20, color: Colors.white70),
             const SizedBox(width: 8),
             Text(_t('selectDate'),
                 style: const TextStyle(
@@ -817,22 +819,29 @@ class _DPSState extends State<DuringPregnancyScreen>
       barrierColor: _B.navy.withOpacity(.50),
       builder: (_) => _PickerDialog(initial: _start, lang: _lang),
     );
-    if (r != null) {
-      setState(() {
-        _start = r;
-        _hasDate = true;
-        _calc();
-      });
-      _fadeCtrl.reset();
-      _slideCtrl.reset();
-      _fadeCtrl.forward();
-      _slideCtrl.forward();
-      HapticFeedback.mediumImpact();
-      appState.setPregnancyStart(r);
-      if (appState.pregnancyRemindersEnabled) {
-        NotificationService.rescheduleAll(appState);
-      }
+    if (r == null) return;
+    if (appState.hasPregnancyData) {
+      final confirmed = await showConfirmDialog(
+        context,
+        title: _t('confirmUpdateTitle'),
+        message: _t('confirmUpdateBody'),
+        confirmLabel: _t('ok'),
+        cancelLabel: _t('cancel'),
+      );
+      if (!confirmed) return;
     }
+    setState(() {
+      _start = r;
+      _hasDate = true;
+      _calc();
+    });
+    _fadeCtrl.reset();
+    _slideCtrl.reset();
+    _fadeCtrl.forward();
+    _slideCtrl.forward();
+    HapticFeedback.mediumImpact();
+    await appState.setPregnancyStart(r);
+    await NotificationService.rescheduleAll(appState);
   }
 
   int get _trimester => _weeks < 14
@@ -904,7 +913,8 @@ class _DPSState extends State<DuringPregnancyScreen>
                 ],
               ),
               child: const Center(
-                  child: Text('🤰', style: TextStyle(fontSize: 76))),
+                  child: Icon(Icons.pregnant_woman_rounded,
+                      size: 76, color: Colors.white)),
             ),
           ),
           const SizedBox(height: 28),
@@ -927,12 +937,12 @@ class _DPSState extends State<DuringPregnancyScreen>
               runSpacing: 8,
               alignment: WrapAlignment.center,
               children: [
-                _heroPill('👶', _t('babyDev')),
-                _heroPill('💡', _t('momTip')),
-                _heroPill('✅', _t('tabChecklist')),
-                _heroPill('🥗', _t('nutrition')),
-                _heroPill('🗓️', _t('appointments')),
-                _heroPill('⚠️', _t('warning')),
+                _heroPill(Icons.child_care_rounded, _t('babyDev')),
+                _heroPill(Icons.lightbulb_rounded, _t('momTip')),
+                _heroPill(Icons.checklist_rounded, _t('tabChecklist')),
+                _heroPill(Icons.restaurant_rounded, _t('nutrition')),
+                _heroPill(Icons.event_note_rounded, _t('appointments')),
+                _heroPill(Icons.warning_amber_rounded, _t('warning')),
               ]),
           const SizedBox(height: 32),
           GestureDetector(
@@ -971,7 +981,7 @@ class _DPSState extends State<DuringPregnancyScreen>
         ]),
       );
 
-  Widget _heroPill(String emoji, String label) => Container(
+  Widget _heroPill(IconData icon, String label) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -980,7 +990,7 @@ class _DPSState extends State<DuringPregnancyScreen>
           boxShadow: [BoxShadow(color: _B.mid.withOpacity(.06), blurRadius: 7)],
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Text(emoji, style: const TextStyle(fontSize: 12)),
+          Icon(icon, size: 12, color: _B.textDark),
           const SizedBox(width: 5),
           Text(label,
               overflow: TextOverflow.ellipsis,
@@ -1094,7 +1104,7 @@ class _DPSState extends State<DuringPregnancyScreen>
                     decoration: BoxDecoration(
                         color: Colors.white.withOpacity(.18),
                         borderRadius: BorderRadius.circular(16)),
-                    child: Text('⭐ $_trimLabel',
+                    child: Text(_trimLabel,
                         style: const TextStyle(
                             fontSize: 10,
                             color: Colors.white,
@@ -1184,10 +1194,10 @@ class _DPSState extends State<DuringPregnancyScreen>
                   ])),
           const SizedBox(height: 14),
           Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-            _progStat('📏', _t('length'), wd.length),
+            _progStat(Icons.straighten_rounded, _t('length'), wd.length),
             Container(
                 width: 1, height: 32, color: Colors.white.withOpacity(.2)),
-            _progStat('⚖️', _t('weight'), wd.weight),
+            _progStat(Icons.monitor_weight_rounded, _t('weight'), wd.weight),
             Container(
                 width: 1, height: 32, color: Colors.white.withOpacity(.2)),
             _progStat(wd.emoji, _t('size'), wd.fruit),
@@ -1195,9 +1205,11 @@ class _DPSState extends State<DuringPregnancyScreen>
         ]),
       );
 
-  Widget _progStat(String e, String l, String v) => Flexible(
+  Widget _progStat(dynamic e, String l, String v) => Flexible(
           child: Column(children: [
-        Text(e, style: const TextStyle(fontSize: 19)),
+        e is IconData
+            ? Icon(e, size: 19, color: Colors.white)
+            : Text(e, style: const TextStyle(fontSize: 19)),
         const SizedBox(height: 2),
         Text(l,
             style: const TextStyle(fontSize: 8, color: Colors.white54),
@@ -1346,9 +1358,13 @@ class _DPSState extends State<DuringPregnancyScreen>
             maxLines: 6),
         const SizedBox(height: 13),
         Row(children: [
-          Expanded(child: _miniStat('📏', _t('length'), wd.length)),
+          Expanded(
+              child: _miniStat(
+                  Icons.straighten_rounded, _t('length'), wd.length)),
           const SizedBox(width: 7),
-          Expanded(child: _miniStat('⚖️', _t('weight'), wd.weight)),
+          Expanded(
+              child: _miniStat(
+                  Icons.monitor_weight_rounded, _t('weight'), wd.weight)),
           const SizedBox(width: 7),
           Expanded(child: _miniStat(wd.emoji, _t('size'), wd.size)),
         ]),
@@ -1374,11 +1390,16 @@ class _DPSState extends State<DuringPregnancyScreen>
                   decoration: BoxDecoration(
                       color: _B.bright.withOpacity(.12),
                       borderRadius: BorderRadius.circular(16)),
-                  child: const Text('💡  Tip',
-                      style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF0369A1))),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    const Icon(Icons.lightbulb_rounded,
+                        size: 12, color: Color(0xFF0369A1)),
+                    const SizedBox(width: 4),
+                    Text(_t('momTip'),
+                        style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF0369A1))),
+                  ]),
                 ),
                 const SizedBox(height: 9),
                 Text(wd.tip[_lang] ?? wd.tip[AppLang.english]!,
@@ -1388,7 +1409,7 @@ class _DPSState extends State<DuringPregnancyScreen>
                     maxLines: 5),
               ])),
           const SizedBox(width: 8),
-          const Text('🌿', style: TextStyle(fontSize: 36)),
+          const Icon(Icons.eco_rounded, size: 36, color: _B.bright),
         ]),
       );
 
@@ -1411,11 +1432,16 @@ class _DPSState extends State<DuringPregnancyScreen>
                   decoration: BoxDecoration(
                       color: _B.warn.withOpacity(.12),
                       borderRadius: BorderRadius.circular(16)),
-                  child: const Text('⚠️  Watch For',
-                      style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFFD97706))),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    const Icon(Icons.warning_amber_rounded,
+                        size: 12, color: Color(0xFFD97706)),
+                    const SizedBox(width: 4),
+                    Text(_t('warning'),
+                        style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFFD97706))),
+                  ]),
                 ),
                 const SizedBox(height: 9),
                 Text(wd.warn[_lang] ?? wd.warn[AppLang.english]!,
@@ -1425,19 +1451,20 @@ class _DPSState extends State<DuringPregnancyScreen>
                     maxLines: 5),
               ])),
           const SizedBox(width: 8),
-          const Text('⚠️', style: TextStyle(fontSize: 34)),
+          const Icon(Icons.warning_amber_rounded,
+              size: 34, color: Color(0xFFD97706)),
         ]),
       );
 
   // ── SYMPTOMS CARD ──────────────────────────────────────────────────────────
   Widget _symptomsCard() {
     final symptoms = [
-      ('nausea', '🤢', _t('nausea')),
-      ('fatigue', '😴', _t('fatigue')),
-      ('swelling', '💧', _t('swelling')),
-      ('backPain', '🔙', _t('backPain')),
-      ('heartburn', '💓', _t('heartburn')),
-      ('breathless', '😮‍💨', _t('breathless')),
+      ('nausea', Icons.sick_rounded, _t('nausea')),
+      ('fatigue', Icons.bedtime_rounded, _t('fatigue')),
+      ('swelling', Icons.water_drop_rounded, _t('swelling')),
+      ('backPain', Icons.accessibility_new_rounded, _t('backPain')),
+      ('heartburn', Icons.local_fire_department_rounded, _t('heartburn')),
+      ('breathless', Icons.air_rounded, _t('breathless')),
     ];
     return _card(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1448,7 +1475,8 @@ class _DPSState extends State<DuringPregnancyScreen>
               gradient: const LinearGradient(
                   colors: [Color(0xFFBAE6FD), Color(0xFF38BDF8)]),
               borderRadius: BorderRadius.circular(11)),
-          child: const Text('📊', style: TextStyle(fontSize: 19)),
+          child: const Icon(Icons.bar_chart_rounded,
+              size: 19, color: _B.textDark),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -1474,7 +1502,7 @@ class _DPSState extends State<DuringPregnancyScreen>
           children:
               symptoms
                   .map((s) => _SymChip(
-                      symptomKey: s.$1, emoji: s.$2, label: s.$3))
+                      symptomKey: s.$1, icon: s.$2, label: s.$3))
                   .toList()),
     ]));
   }
@@ -1520,8 +1548,8 @@ class _DPSState extends State<DuringPregnancyScreen>
                             ? Icon(Icons.check_rounded,
                                 size: 13, color: _B.bright)
                             : cur
-                                ? const Text('🤰',
-                                    style: TextStyle(fontSize: 12))
+                                ? Icon(Icons.pregnant_woman_rounded,
+                                    size: 12, color: dot)
                                 : Text('${w.week}',
                                     style: TextStyle(
                                         fontSize: 8,
@@ -1699,7 +1727,8 @@ class _DPSState extends State<DuringPregnancyScreen>
                     gradient: const LinearGradient(
                         colors: [Color(0xFFB2EBF2), Color(0xFF80DEEA)]),
                     borderRadius: BorderRadius.circular(11)),
-                child: const Text('🥗', style: TextStyle(fontSize: 19)),
+                child: const Icon(Icons.restaurant_rounded,
+                    size: 19, color: _B.textDark),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -1763,7 +1792,8 @@ class _DPSState extends State<DuringPregnancyScreen>
                 decoration: BoxDecoration(
                     color: _B.purple.withOpacity(.11),
                     borderRadius: BorderRadius.circular(11)),
-                child: const Text('🗓️', style: TextStyle(fontSize: 19)),
+                child: const Icon(Icons.event_note_rounded,
+                    size: 19, color: _B.purple),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -1841,14 +1871,16 @@ class _DPSState extends State<DuringPregnancyScreen>
             maxLines: 1),
       );
 
-  Widget _miniStat(String e, String l, String v) => Container(
+  Widget _miniStat(dynamic e, String l, String v) => Container(
         padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 5),
         decoration: BoxDecoration(
             color: _B.frost,
             borderRadius: BorderRadius.circular(11),
             border: Border.all(color: _B.border.withOpacity(.7))),
         child: Column(children: [
-          Text(e, style: const TextStyle(fontSize: 17)),
+          e is IconData
+              ? Icon(e, size: 17, color: _B.textDark)
+              : Text(e, style: const TextStyle(fontSize: 17)),
           const SizedBox(height: 2),
           Text(l,
               style: const TextStyle(fontSize: 8, color: _B.textMid),
@@ -1870,9 +1902,10 @@ class _DPSState extends State<DuringPregnancyScreen>
 // SYMPTOM CHIP
 // ─────────────────────────────────────────────────────────────────────────────
 class _SymChip extends StatefulWidget {
-  final String symptomKey, emoji, label;
+  final String symptomKey, label;
+  final IconData icon;
   const _SymChip(
-      {required this.symptomKey, required this.emoji, required this.label});
+      {required this.symptomKey, required this.icon, required this.label});
   @override
   State<_SymChip> createState() => _SymChipState();
 }
@@ -1929,7 +1962,8 @@ class _SymChipState extends State<_SymChip>
                   : null,
             ),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Text(widget.emoji, style: const TextStyle(fontSize: 12)),
+              Icon(widget.icon,
+                  size: 12, color: _on ? Colors.white : _B.textMid),
               const SizedBox(width: 4),
               Text(widget.label,
                   style: TextStyle(
@@ -2048,11 +2082,8 @@ class _CheckItemState extends State<_CheckItem>
                       gradient:
                           const LinearGradient(colors: [_B.deep, _B.vivid]),
                       borderRadius: BorderRadius.circular(7)),
-                  child: const Text('✓',
-                      style: TextStyle(
-                          fontSize: 9,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800)),
+                  child: const Icon(Icons.check_rounded,
+                      size: 9, color: Colors.white),
                 ),
             ]),
           ),

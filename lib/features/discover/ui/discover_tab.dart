@@ -183,7 +183,7 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('🔍', style: TextStyle(fontSize: 40)),
+            const Icon(Icons.search_rounded, size: 40, color: C.darkBlue),
             const SizedBox(height: 12),
             Text(
               LS.get(lang, 'discoverEmpty'),

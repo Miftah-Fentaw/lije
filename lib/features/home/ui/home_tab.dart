@@ -220,8 +220,10 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                 AppAssets.lijeLogo,
                 width: 90,
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) =>
-                    const Text('🤰', style: TextStyle(fontSize: 52)),
+                errorBuilder: (_, __, ___) => const Icon(
+                    Icons.pregnant_woman_rounded,
+                    size: 52,
+                    color: Colors.white),
               ),
             ),
             Positioned(
@@ -295,26 +297,26 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   Widget _categoryGrid(BuildContext ctx, AppLang lang) {
     final cats = [
       _CatData(
-          '📅',
+          Icons.calendar_month_rounded,
           LS.get(lang, 'pregnancyCalc'),
           LS.get(lang, 'pregnancyCalcSub'),
           const [C.darkBlue, C.darkBlue],
           () => _navigateTo(ctx, const PregnancyCalculationScreen())),
       _CatData(
-          '🤰',
+          Icons.pregnant_woman_rounded,
           LS.get(lang, 'duringPregnancy'),
           LS.get(lang, 'duringPregnancySub'),
           const [C.darkBlue, C.darkBlue],
           () => _navigateTo(ctx, const DuringPregnancyScreen())),
       _CatData(
-          '👶',
+          Icons.child_care_rounded,
           LS.get(lang, 'afterBirth'),
           LS.get(lang, 'afterBirthSub'),
           const [C.darkBlue, C.darkBlue],
           () => _navigateTo(ctx, AfterBirthScreen(
               childBirthDate: appState.childBirthDate))),
       _CatData(
-          '🩺',
+          Icons.medical_services_rounded,
           LS.get(lang, 'talkDoctor'),
           LS.get(lang, 'talkDoctorSub'),
           const [C.darkBlue, C.darkBlue],
@@ -431,7 +433,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                           child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                            _flatPill('⭐  $trimesterLabel'),
+                            _flatPill(trimesterLabel),
                             const SizedBox(height: 9),
                             Text(LS.get(lang, 'myPregnancy'),
                                 style: const TextStyle(
@@ -509,16 +511,16 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
             color: C.lightBlue,
             borderRadius: BorderRadius.circular(12)),
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-          Expanded(child: _stat('📏', LS.get(lang, 'babySize'), wd.length)),
+          Expanded(child: _stat(Icons.straighten_rounded, LS.get(lang, 'babySize'), wd.length)),
           Container(width: 1, height: 32, color: C.darkBlue.withOpacity(0.12)),
-          Expanded(child: _stat('⚖', LS.get(lang, 'babyWeight'), wd.weight)),
+          Expanded(child: _stat(Icons.monitor_weight_rounded, LS.get(lang, 'babyWeight'), wd.weight)),
           Container(width: 1, height: 32, color: C.darkBlue.withOpacity(0.12)),
-          Expanded(child: _stat('🥭', LS.get(lang, 'bigAs'), wd.fruit)),
+          Expanded(child: _stat(Icons.eco_rounded, LS.get(lang, 'bigAs'), wd.fruit)),
         ]),
       );
 
-  Widget _stat(String emoji, String label, String value) => Column(children: [
-        Text(emoji, style: const TextStyle(fontSize: 18)),
+  Widget _stat(IconData icon, String label, String value) => Column(children: [
+        Icon(icon, size: 18, color: C.darkBlue),
         const SizedBox(height: 2),
         Text(label,
             style: const TextStyle(fontSize: 9, color: C.textLight),
@@ -572,7 +574,8 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                   color: C.lightBlue,
                   borderRadius: BorderRadius.circular(12)),
               child: const Center(
-                  child: Text('🌟', style: TextStyle(fontSize: 20))),
+                  child: Icon(Icons.star_rounded,
+                      size: 20, color: C.darkBlue)),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -614,7 +617,8 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                 color: C.lightBlue,
                 borderRadius: BorderRadius.circular(12)),
             child: const Center(
-                child: Text('💡', style: TextStyle(fontSize: 18))),
+                child: Icon(Icons.lightbulb_rounded,
+                    size: 18, color: C.darkBlue)),
           ),
           const SizedBox(width: 11),
           Expanded(
@@ -661,7 +665,8 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
                   color: C.lightBlue,
                   borderRadius: BorderRadius.circular(12)),
               child: const Center(
-                  child: Text('📋', style: TextStyle(fontSize: 18))),
+                  child: Icon(Icons.event_note_rounded,
+                      size: 18, color: C.darkBlue)),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -803,17 +808,17 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
           child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _footerItem('👩', LS.get(lang, 'healthyMother')),
+                _footerItem(Icons.favorite_rounded, LS.get(lang, 'healthyMother')),
                 Container(width: 1, height: 30, color: Colors.white24),
-                _footerItem('👶', LS.get(lang, 'healthyChild')),
+                _footerItem(Icons.child_care_rounded, LS.get(lang, 'healthyChild')),
                 Container(width: 1, height: 30, color: Colors.white24),
-                _footerItem('👨‍👩‍👦', LS.get(lang, 'happyFamily')),
+                _footerItem(Icons.family_restroom_rounded, LS.get(lang, 'happyFamily')),
               ]),
         ),
       );
 
-  Widget _footerItem(String emoji, String label) => Column(children: [
-        Text(emoji, style: const TextStyle(fontSize: 21)),
+  Widget _footerItem(IconData icon, String label) => Column(children: [
+        Icon(icon, size: 21, color: Colors.white),
         const SizedBox(height: 5),
         Text(label,
             textAlign: TextAlign.center,
@@ -851,10 +856,11 @@ Widget _bubble(
 // CATEGORY DATA + CARD
 // ─────────────────────────────────────────────────────────────────────────────
 class _CatData {
-  final String emoji, title, sub;
+  final IconData icon;
+  final String title, sub;
   final List<Color> grad;
   final VoidCallback onTap;
-  const _CatData(this.emoji, this.title, this.sub, this.grad, this.onTap);
+  const _CatData(this.icon, this.title, this.sub, this.grad, this.onTap);
 }
 
 class _CatCard extends StatefulWidget {
@@ -923,8 +929,8 @@ class _CatCardState extends State<_CatCard>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(widget.cat.emoji,
-                              style: const TextStyle(fontSize: 19)),
+                          Icon(widget.cat.icon,
+                              size: 22, color: C.darkBlue),
                           const SizedBox(height: 5),
                           Text(widget.cat.title,
                               maxLines: 2,
@@ -1027,8 +1033,9 @@ class _FloatBabyIcon extends StatelessWidget {
                       blurRadius: 16 + pulse.value * 8,
                       spreadRadius: pulse.value * 3)
                 ]),
-            child:
-                const Center(child: Text('👶', style: TextStyle(fontSize: 36))),
+            child: const Center(
+                child: Icon(Icons.child_care_rounded,
+                    size: 36, color: Colors.white)),
           ),
         ),
       );
@@ -1150,7 +1157,8 @@ class _ComingSoonBody extends StatelessWidget {
                     BoxShadow(color: C.mid.withOpacity(0.15), blurRadius: 22)
                   ]),
               child: const Center(
-                  child: Text('🚧', style: TextStyle(fontSize: 40))),
+                  child: Icon(Icons.construction_rounded,
+                      size: 40, color: C.mid)),
             ),
             const SizedBox(height: 20),
             Text(LS.get(lang, 'comingSoon'),

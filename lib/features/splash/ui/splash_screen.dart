@@ -6,6 +6,8 @@ import 'package:lije/app/shell/main_shell.dart';
 import 'package:lije/core/constants/app_assets.dart';
 import 'package:lije/core/l10n/strings.dart';
 import 'package:lije/core/theme/colors.dart';
+import 'package:lije/core/services/notification_service.dart';
+import 'package:lije/features/home/models/app_state.dart';
 import 'package:lije/features/auth/services/auth_storage.dart';
 import 'package:lije/features/auth/ui/signup_screen.dart';
 
@@ -77,6 +79,10 @@ class _SplashScreenState extends State<SplashScreen>
     final userFuture = AuthStorage.loadUser();
     await Future.delayed(const Duration(milliseconds: 2800));
     final user = await userFuture;
+    if (user != null) {
+      await appState.bindUser(user.supabaseId);
+      await NotificationService.rescheduleAll(appState);
+    }
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(

@@ -3,6 +3,8 @@ import 'package:lije/app/shell/main_shell.dart';
 import 'package:lije/core/l10n/strings.dart';
 import 'package:lije/core/theme/colors.dart';
 import 'package:lije/core/widgets/lije_logo.dart';
+import 'package:lije/core/services/notification_service.dart';
+import 'package:lije/features/home/models/app_state.dart';
 import 'package:lije/features/auth/models/auth_user.dart';
 import 'package:lije/features/auth/services/auth_storage.dart';
 import 'package:lije/features/auth/services/auth_validators.dart';
@@ -41,7 +43,22 @@ class _SignupScreenState extends State<SignupScreen> {
       phone: phone,
       carrier: _carrier,
     );
-    await AuthStorage.saveUser(user);
+    AuthUser saved;
+    try {
+      saved = await AuthStorage.signUp(user);
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      final message = e.message == 'phone already registered'
+          ? LS.get(lang, 'authPhoneTaken')
+          : LS.get(lang, 'authNetworkError');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(message),
+        backgroundColor: C.error,
+      ));
+      return;
+    }
+    await appState.bindUser(saved.supabaseId);
+    await NotificationService.rescheduleAll(appState);
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const MainShell()),
@@ -158,10 +175,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     SizedBox(
                       height: 52,
                       child: ElevatedButton(
-                        // onPressed: () => _submit(lang),
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const MainShell()),
-                        ),
+                        onPressed: () => _submit(lang),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: C.darkBlue,
                           foregroundColor: Colors.white,

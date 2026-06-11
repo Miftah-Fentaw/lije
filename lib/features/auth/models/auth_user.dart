@@ -42,12 +42,26 @@ class AuthUser {
   final String phone;
   final Carrier carrier;
 
+  /// The `id` (uuid) of this user's row in the Supabase `users` table, once
+  /// the account has been created/looked up remotely. `null` when the user
+  /// has only ever been saved locally (e.g. offline-only usage).
+  final String? supabaseId;
+
   const AuthUser({
     required this.userId,
     required this.name,
     required this.phone,
     required this.carrier,
+    this.supabaseId,
   });
 
   String get fullPhone => '${carrier.dialCode}$phone';
+
+  AuthUser copyWith({String? supabaseId}) => AuthUser(
+        userId: userId,
+        name: name,
+        phone: phone,
+        carrier: carrier,
+        supabaseId: supabaseId ?? this.supabaseId,
+      );
 }

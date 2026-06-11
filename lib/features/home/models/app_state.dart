@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:lije/features/home/services/pregnancy_storage.dart';
 
 class AppState extends ChangeNotifier {
@@ -12,6 +13,19 @@ class AppState extends ChangeNotifier {
   bool _pregnancyRemindersEnabled = false;
   final Set<String> _completedTodos = {};
   final Set<String> _loggedSymptoms = {};
+  String? _supabaseUserId;
+
+  static const _table = 'pregnancy_records';
+
+  bool get isCloudLinked => _supabaseUserId != null;
+
+  static SupabaseClient? get _client {
+    try {
+      return Supabase.instance.client;
+    } catch (_) {
+      return null;
+    }
+  }
 
   DateTime? get lnmp => _lnmp;
   DateTime? get edd => _edd;
@@ -132,18 +146,130 @@ class AppState extends ChangeNotifier {
     _gaDays = diff % 7;
   }
 
-  Future<void> _persist() => PregnancyStorage.save(
-        lnmpMs: _lnmp?.millisecondsSinceEpoch,
-        eddMs: _edd?.millisecondsSinceEpoch,
-        gaWeeks: _gaWeeks,
-        gaDays: _gaDays,
-        hasPregnancy: _hasPregnancyData,
-        birthMs: _childBirthDate?.millisecondsSinceEpoch,
-        notificationsEnabled: _notificationsEnabled,
-        pregnancyRemindersEnabled: _pregnancyRemindersEnabled,
-        completedTodos: _completedTodos,
-        loggedSymptoms: _loggedSymptoms,
-      );
+  Future<void> _persist() async {
+    await PregnancyStorage.save(
+      lnmpMs: _lnmp?.millisecondsSinceEpoch,
+      eddMs: _edd?.millisecondsSinceEpoch,
+      gaWeeks: _gaWeeks,
+      gaDays: _gaDays,
+      hasPregnancy: _hasPregnancyData,
+      birthMs: _childBirthDate?.millisecondsSinceEpoch,
+      notificationsEnabled: _notificationsEnabled,
+      pregnancyRemindersEnabled: _pregnancyRemindersEnabled,
+      completedTodos: _completedTodos,
+      loggedSymptoms: _loggedSymptoms,
+    );
+    await _pushToCloud();
+  }
+
+  Map<String, dynamic> _cloudRow() => {
+        'user_id': _supabaseUserId,
+        'lnmp_ms': _lnmp?.millisecondsSinceEpoch,
+        'edd_ms': _edd?.millisecondsSinceEpoch,
+        'ga_weeks': _gaWeeks,
+        'ga_days': _gaDays,
+        'has_pregnancy': _hasPregnancyData,
+        'birth_ms': _childBirthDate?.millisecondsSinceEpoch,
+        'notifications_enabled': _notificationsEnabled,
+        'pregnancy_reminders_enabled': _pregnancyRemindersEnabled,
+        'completed_todos': _completedTodos.toList(),
+        'logged_symptoms': _loggedSymptoms.toList(),
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+
+  void _applyCloudRow(Map<String, dynamic> row) {
+    _lnmp = _fromMs(row['lnmp_ms'] as int?);
+    _edd = _fromMs(row['edd_ms'] as int?);
+    _gaWeeks = row['ga_weeks'] as int? ?? 0;
+    _gaDays = row['ga_days'] as int? ?? 0;
+    _hasPregnancyData = row['has_pregnancy'] as bool? ?? false;
+    _childBirthDate = _fromMs(row['birth_ms'] as int?);
+    _notificationsEnabled = row['notifications_enabled'] as bool? ?? true;
+    _pregnancyRemindersEnabled =
+        row['pregnancy_reminders_enabled'] as bool? ?? false;
+    _completedTodos
+      ..clear()
+      ..addAll((row['completed_todos'] as List?)?.cast<String>() ?? []);
+    _loggedSymptoms
+      ..clear()
+      ..addAll((row['logged_symptoms'] as List?)?.cast<String>() ?? []);
+  }
+
+  Future<void> _pushToCloud() async {
+    final client = _client;
+    final userId = _supabaseUserId;
+    if (client == null || userId == null) return;
+    try {
+      await client.from(_table).upsert(_cloudRow());
+    } catch (_) {
+      // Offline or unreachable: local cache already saved above.
+    }
+  }
+
+  /// Links this device's data to a Supabase user. If a remote record
+  /// already exists, it overwrites local state (cloud is source of truth).
+  /// Otherwise, the current local state is pushed up as the initial record.
+  Future<void> bindUser(String? supabaseUserId) async {
+    _supabaseUserId = supabaseUserId;
+    final client = _client;
+    if (client == null || supabaseUserId == null) return;
+    try {
+      final row = await client
+          .from(_table)
+          .select()
+          .eq('user_id', supabaseUserId)
+          .maybeSingle();
+      if (row != null) {
+        _applyCloudRow(row);
+        await PregnancyStorage.save(
+          lnmpMs: _lnmp?.millisecondsSinceEpoch,
+          eddMs: _edd?.millisecondsSinceEpoch,
+          gaWeeks: _gaWeeks,
+          gaDays: _gaDays,
+          hasPregnancy: _hasPregnancyData,
+          birthMs: _childBirthDate?.millisecondsSinceEpoch,
+          notificationsEnabled: _notificationsEnabled,
+          pregnancyRemindersEnabled: _pregnancyRemindersEnabled,
+          completedTodos: _completedTodos,
+          loggedSymptoms: _loggedSymptoms,
+        );
+        notifyListeners();
+      } else {
+        await _pushToCloud();
+      }
+    } catch (_) {
+      // Offline: keep using local cache.
+    }
+  }
+
+  /// Resets all in-memory/local state and unlinks the cloud user. Used on
+  /// logout. Does not delete the user's row in Supabase.
+  Future<void> clearUser() async {
+    _supabaseUserId = null;
+    _lnmp = null;
+    _edd = null;
+    _gaWeeks = 0;
+    _gaDays = 0;
+    _hasPregnancyData = false;
+    _childBirthDate = null;
+    _notificationsEnabled = true;
+    _pregnancyRemindersEnabled = false;
+    _completedTodos.clear();
+    _loggedSymptoms.clear();
+    await PregnancyStorage.save(
+      lnmpMs: null,
+      eddMs: null,
+      gaWeeks: _gaWeeks,
+      gaDays: _gaDays,
+      hasPregnancy: _hasPregnancyData,
+      birthMs: null,
+      notificationsEnabled: _notificationsEnabled,
+      pregnancyRemindersEnabled: _pregnancyRemindersEnabled,
+      completedTodos: _completedTodos,
+      loggedSymptoms: _loggedSymptoms,
+    );
+    notifyListeners();
+  }
 
   static DateTime? _fromMs(int? ms) =>
       ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);

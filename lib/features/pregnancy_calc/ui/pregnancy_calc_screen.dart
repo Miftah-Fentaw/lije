@@ -4,6 +4,7 @@ import 'package:lije/models/models.dart';
 import 'dart:math' as math;
 import 'package:lije/core/constants/app_assets.dart';
 import 'package:lije/core/widgets/feature_app_bar.dart';
+import 'package:lije/core/widgets/confirm_dialog.dart';
 import 'package:lije/core/services/notification_service.dart';
 import 'package:lije/features/home/models/app_state.dart';
 
@@ -395,7 +396,7 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
     );
   }
 
-  void _calculate() {
+  Future<void> _calculate() async {
     setState(() => _errorMsg = null);
     HapticFeedback.lightImpact();
     PregnancyResult? res;
@@ -442,20 +443,32 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
       }
     }
 
+    if (appState.hasPregnancyData) {
+      final confirmed = await showConfirmDialog(
+        context,
+        title: s('confirmUpdateTitle'),
+        message: s('confirmUpdateBody'),
+        confirmLabel: s('ok'),
+        cancelLabel: s('cancel'),
+      );
+      if (!confirmed) return;
+    }
+
     setState(() {
       _result = res;
       _showResult = true;
       _notifySet = false;
     });
-    appState.applyPregnancyResult(
+    await appState.applyPregnancyResult(
       lnmp: res!.lnmpEstimate,
       edd: res.edd,
       gaWeeks: res.gaWeeks,
       gaDays: res.gaDays,
     );
     if (_notifySet) {
-      NotificationService.enablePregnancyReminders(appState);
+      await NotificationService.enablePregnancyReminders(appState);
     }
+    await NotificationService.rescheduleAll(appState);
     HapticFeedback.mediumImpact();
     _resultAnim.forward(from: 0);
     Future.delayed(const Duration(milliseconds: 200), () {
@@ -497,7 +510,8 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(children: [
-              const Text('🔔', style: TextStyle(fontSize: 16)),
+              const Icon(Icons.notifications_active_rounded,
+                  size: 16, color: Colors.white),
               const SizedBox(width: 8),
               Flexible(
                   child: Text(
@@ -659,9 +673,9 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
   // ── METHOD SELECTOR ────────────────────────────────────────────────────────
   Widget _buildMethodSelector() {
     final methods = [
-      ('🩸', s('lastPeriod'), BC.coral, BC.coralLight),
-      ('📋', s('ultrasound'), BC.primary, BC.primaryFrost),
-      ('💉', s('ivfTransfer'), BC.lavender, BC.lavenderLight),
+      (Icons.water_drop_rounded, s('lastPeriod'), BC.coral, BC.coralLight),
+      (Icons.monitor_heart_rounded, s('ultrasound'), BC.primary, BC.primaryFrost),
+      (Icons.vaccines_rounded, s('ivfTransfer'), BC.lavender, BC.lavenderLight),
     ];
     return SlideTransition(
       position: Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
@@ -726,8 +740,9 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
                           ],
                   ),
                   child: Column(children: [
-                    Text(methods[index].$1,
-                        style: TextStyle(fontSize: isActive ? 24 : 20)),
+                    Icon(methods[index].$1,
+                        size: isActive ? 24 : 20,
+                        color: isActive ? methods[index].$3 : BC.textLight),
                     const SizedBox(height: 5),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -782,7 +797,7 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
 
   Widget _lnmpPanel() =>
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _infoBox('🩸', s('lnmpDesc'), BC.coral, BC.coralLight),
+        _infoBox(Icons.water_drop_rounded, s('lnmpDesc'), BC.coral, BC.coralLight),
         const SizedBox(height: 18),
         _fieldLabel(s('firstDayPeriod')),
         const SizedBox(height: 8),
@@ -792,7 +807,7 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
 
   Widget _usPanel() =>
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _infoBox('📋', s('usDesc'), BC.primary, BC.primaryFrost),
+        _infoBox(Icons.monitor_heart_rounded, s('usDesc'), BC.primary, BC.primaryFrost),
         const SizedBox(height: 18),
         _fieldLabel(s('usDate')),
         const SizedBox(height: 8),
@@ -810,7 +825,7 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
 
   Widget _ivfPanel() =>
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _infoBox('💉', s('ivfDesc'), BC.lavender, BC.lavenderLight),
+        _infoBox(Icons.vaccines_rounded, s('ivfDesc'), BC.lavender, BC.lavenderLight),
         const SizedBox(height: 18),
         _fieldLabel(s('ivfDate')),
         const SizedBox(height: 8),
@@ -856,7 +871,7 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
     ));
   }
 
-  Widget _infoBox(String icon, String text, Color accent, Color bg) {
+  Widget _infoBox(IconData icon, String text, Color accent, Color bg) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -865,7 +880,7 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
         border: Border.all(color: accent.withOpacity(0.2)),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(icon, style: const TextStyle(fontSize: 16)),
+        Icon(icon, size: 16, color: accent),
         const SizedBox(width: 10),
         Expanded(
             child: Text(text,
@@ -998,7 +1013,8 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
             border: Border.all(color: BC.error.withOpacity(0.2)),
           ),
           child: Row(children: [
-            const Text('⚠️', style: TextStyle(fontSize: 16)),
+            const Icon(Icons.warning_amber_rounded,
+                size: 16, color: BC.error),
             const SizedBox(width: 10),
             Expanded(
                 child: Text(_errorMsg!,
@@ -1051,18 +1067,30 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
               child: Center(
                   child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
-                child: Text(
-                  _showResult
-                      ? '🔄  ${s('calculateAgain')}'
-                      : '✨  ${s('calculate')}',
+                child: Row(
                   key: ValueKey(_showResult),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                  style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: 0.2),
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                        _showResult
+                            ? Icons.refresh_rounded
+                            : Icons.auto_awesome_rounded,
+                        size: 18,
+                        color: Colors.white),
+                    const SizedBox(width: 8),
+                    Flexible(
+                        child: Text(
+                      _showResult ? s('calculateAgain') : s('calculate'),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: 0.2),
+                    )),
+                  ],
                 ),
               )),
             ),
@@ -1117,7 +1145,8 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
                 decoration: BoxDecoration(
                     color: BC.primary.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(10)),
-                child: const Text('🔬', style: TextStyle(fontSize: 14)),
+                child: const Icon(Icons.science_rounded,
+                    size: 14, color: BC.primary),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -1263,7 +1292,8 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
                         color: Colors.white.withOpacity(0.18),
                         borderRadius: BorderRadius.circular(16)),
                     child: const Center(
-                        child: Text('💝', style: TextStyle(fontSize: 26))),
+                        child: Icon(Icons.favorite_rounded,
+                            size: 26, color: Colors.white)),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -1328,7 +1358,8 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
                       Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            const Text('🇪🇹', style: TextStyle(fontSize: 18)),
+                            const Icon(Icons.flag_rounded,
+                                size: 18, color: BC.lavender),
                             const SizedBox(height: 2),
                             Text(etDate,
                                 textAlign: TextAlign.right,
@@ -1351,7 +1382,7 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
                   Row(children: [
                     Expanded(
                         child: _statCard(
-                            '👶',
+                            Icons.child_care_rounded,
                             s('babyAgeToday'),
                             '${r.gaWeeks}w + ${r.gaDays}d',
                             BC.primaryFrost,
@@ -1360,10 +1391,10 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
                     Expanded(
                         child: _statCard(
                       isToday
-                          ? '🎉'
+                          ? Icons.celebration_rounded
                           : isOverdue
-                              ? '⚠️'
-                              : '⏳',
+                              ? Icons.warning_amber_rounded
+                              : Icons.hourglass_top_rounded,
                       s('daysUntilDue'),
                       daysText,
                       isOverdue
@@ -1403,13 +1434,13 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
   }
 
   Widget _statCard(
-      String icon, String label, String value, Color bg, Color textColor) {
+      IconData icon, String label, String value, Color bg, Color textColor) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration:
           BoxDecoration(color: bg, borderRadius: BorderRadius.circular(18)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(icon, style: const TextStyle(fontSize: 20)),
+        Icon(icon, size: 20, color: textColor),
         const SizedBox(height: 6),
         Text(label,
             overflow: TextOverflow.ellipsis,
@@ -1538,7 +1569,8 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
               color: isActive ? chip.$4.withOpacity(0.4) : BC.borderLight),
         ),
         child: Column(children: [
-          Text(isActive ? '✅' : '⬜', style: const TextStyle(fontSize: 14)),
+          Icon(isActive ? Icons.check_circle_rounded : Icons.circle_outlined,
+              size: 14, color: isActive ? chip.$4 : BC.textLight),
           const SizedBox(height: 4),
           Text(
             chip.$1
@@ -1600,10 +1632,13 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
             child: Center(
                 child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 250),
-              child: Text(
-                _notifySet ? '🔔' : '🔕',
+              child: Icon(
+                _notifySet
+                    ? Icons.notifications_active_rounded
+                    : Icons.notifications_off_rounded,
                 key: ValueKey(_notifySet),
-                style: const TextStyle(fontSize: 22),
+                size: 22,
+                color: _notifySet ? Colors.white : BC.textLight,
               ),
             )),
           ),
@@ -1684,7 +1719,8 @@ class _PregnancyCalculationScreenState extends State<PregnancyCalculationScreen>
         border: Border.all(color: fg.withOpacity(0.2)),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(isOverdue ? '⚠️' : '💡', style: const TextStyle(fontSize: 18)),
+        Icon(isOverdue ? Icons.warning_amber_rounded : Icons.lightbulb_rounded,
+            size: 18, color: fg),
         const SizedBox(width: 10),
         Expanded(
             child: Text(tip,
@@ -1871,8 +1907,9 @@ class _AnimatedBabyIconState extends State<_AnimatedBabyIcon>
             Positioned(
                 top: 4,
                 right: 4,
-                child: Text('💕',
-                    style: TextStyle(fontSize: 10 + _float.value * 0.1))),
+                child: Icon(Icons.favorite,
+                    size: 10 + _float.value * 0.1,
+                    color: Colors.pinkAccent)),
           ]),
         ),
       );
@@ -2077,7 +2114,8 @@ class _CalendarPickerSheetState extends State<_CalendarPickerSheet>
                               offset: const Offset(0, 3))
                         ],
                       ),
-                      child: const Text('📅', style: TextStyle(fontSize: 18)),
+                      child: const Icon(Icons.calendar_today_rounded,
+                          size: 18, color: Colors.white),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -2284,7 +2322,7 @@ class _CalendarPickerSheetState extends State<_CalendarPickerSheet>
         if (_gregSelected != null) ...[
           const SizedBox(height: 14),
           _selectedDisplay(
-              icon: '🌍',
+              icon: Icons.public_rounded,
               label: _fmtDate(_gregSelected!),
               bg: BC.primaryFrost,
               textColor: BC.primary),
@@ -2341,7 +2379,7 @@ class _CalendarPickerSheetState extends State<_CalendarPickerSheet>
         if (_etDay != null) ...[
           const SizedBox(height: 14),
           _selectedDisplay(
-              icon: '🇪🇹',
+              icon: Icons.flag_rounded,
               label: '${months[_etMonth - 1]} $_etDay $_etYear',
               bg: BC.lavenderLight,
               textColor: BC.lavender),
@@ -2487,7 +2525,7 @@ class _CalendarPickerSheetState extends State<_CalendarPickerSheet>
   }
 
   Widget _selectedDisplay(
-      {required String icon,
+      {required IconData icon,
       required String label,
       required Color bg,
       required Color textColor}) {
@@ -2506,7 +2544,7 @@ class _CalendarPickerSheetState extends State<_CalendarPickerSheet>
           border: Border.all(color: textColor.withOpacity(0.25)),
         ),
         child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text(icon, style: const TextStyle(fontSize: 16)),
+          Icon(icon, size: 16, color: textColor),
           const SizedBox(width: 8),
           Flexible(
               child: Text(label,

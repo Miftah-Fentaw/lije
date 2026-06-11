@@ -3,6 +3,8 @@ import 'package:lije/app/shell/main_shell.dart';
 import 'package:lije/core/l10n/strings.dart';
 import 'package:lije/core/theme/colors.dart';
 import 'package:lije/core/widgets/lije_logo.dart';
+import 'package:lije/core/services/notification_service.dart';
+import 'package:lije/features/home/models/app_state.dart';
 import 'package:lije/features/auth/models/auth_user.dart';
 import 'package:lije/features/auth/services/auth_storage.dart';
 import 'package:lije/features/auth/services/auth_validators.dart';
@@ -35,18 +37,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final name = _nameCtrl.text.trim();
     final phone = '${_carrier.prefix}${_phoneCtrl.text.trim()}';
-    final stored = await AuthStorage.loadUser();
 
-    final matches = stored != null &&
-        stored.phone == phone &&
-        stored.carrier == _carrier &&
-        stored.name.toLowerCase() == name.toLowerCase();
-
-    if (!matches) {
-      setState(() => _error = LS.get(lang, 'authNoMatch'));
+    AuthUser user;
+    try {
+      user = await AuthStorage.logIn(name: name, phone: phone, carrier: _carrier);
+    } on AuthException catch (e) {
+      final message = e.message == 'no account found'
+          ? LS.get(lang, 'authNoMatch')
+          : LS.get(lang, 'authNetworkError');
+      setState(() => _error = message);
       return;
     }
 
+    await appState.bindUser(user.supabaseId);
+    await NotificationService.rescheduleAll(appState);
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const MainShell()),

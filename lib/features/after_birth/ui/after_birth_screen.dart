@@ -5,6 +5,7 @@ import 'package:lije/core/services/notification_service.dart';
 import 'package:lije/features/home/models/app_state.dart';
 import 'package:lije/models/models.dart';
 import 'package:lije/core/widgets/feature_app_bar.dart';
+import 'package:lije/core/widgets/confirm_dialog.dart';
 
 // ============================================================
 // INTERNAL COLOR PALETTE  (mapped to app theme)
@@ -61,7 +62,7 @@ class _L {
       'myChild': 'My Child',
       'born': 'Born',
       'growthJourney': 'Growth Journey',
-      'yearsReached': '5 years reached! 🎉',
+      'yearsReached': '5 years reached',
       'stage': 'Stage',
       'month': 'Month',
       'milestoneCount': 'Milestones',
@@ -108,7 +109,7 @@ class _L {
       'myChild': 'ልጄ',
       'born': 'የተወለደ',
       'growthJourney': 'የእድገት ጉዞ',
-      'yearsReached': '5 ዓመት ደርሷል! 🎉',
+      'yearsReached': '5 ዓመት ደርሷል',
       'stage': 'ደረጃ',
       'month': 'ወር',
       'milestoneCount': 'ምዕራፎች',
@@ -155,7 +156,7 @@ class _L {
       'myChild': "Daa'ima Koo",
       'born': 'Dhalate',
       'growthJourney': 'Adeemsa Guddina',
-      'yearsReached': 'Waggaa 5 gahuu! 🎉',
+      'yearsReached': 'Waggaa 5 gahuu',
       'stage': 'Sadarkaa',
       'month': "Ji'a",
       'milestoneCount': "Milkaa'ina",
@@ -425,7 +426,8 @@ class _DatePickerDialogState extends State<_DatePickerDialog>
                 color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text('🗓️', style: TextStyle(fontSize: 20)),
+              child: const Icon(Icons.event_note_rounded,
+                  size: 20, color: Colors.white),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -905,7 +907,8 @@ class _BubblePainter extends CustomPainter {
 // DATA MODELS
 // ============================================================
 class _DevArea {
-  final String emoji, title, detail;
+  final IconData emoji;
+  final String title, detail;
   final Color bgColor;
   const _DevArea(
       {required this.emoji,
@@ -915,7 +918,8 @@ class _DevArea {
 }
 
 class _Stage {
-  final String key, name, ageRange, emoji, alertEmoji;
+  final String key, name, ageRange;
+  final IconData emoji, alertEmoji;
   final int minMonth, maxMonth;
   final List<String> milestones, vaccinations;
   final List<_DevArea> devAreas;
@@ -990,39 +994,39 @@ class _SL {
       'newborn':
           'Your newborn is adapting to life outside the womb. Sleeps 14–17 hours a day, feeds every 2–3 hours, and responds to your voice and touch.',
       'earlyInfant':
-          'Your baby is becoming more alert and interactive. Smiles appear around 6 weeks — a magical moment! Head control is developing.',
+          'Your baby is becoming more alert and interactive. Smiles appear around 6 weeks, a memorable moment. Head control is developing.',
       'discovering':
-          'Your baby is full of curiosity! They can hold their head steady, roll from tummy to back, and reach for objects.',
+          'Your baby is full of curiosity. They can hold their head steady, roll from tummy to back, and reach for objects.',
       'explorer':
-          'A major leap! Your baby may start solid foods, sit without support, and begin crawling.',
+          'A major leap. Your baby may start solid foods, sit without support, and begin crawling.',
       'almostToddler':
-          'Your baby is close to their first birthday! Pulling to stand, cruising along furniture, and possibly taking first steps.',
+          'Your baby is close to their first birthday. Pulling to stand, cruising along furniture, and possibly taking first steps.',
       'firstToddler':
-          'Happy first birthday! 🎂 Your baby is now a toddler, walking independently and exploring everything.',
+          'Happy first birthday. Your baby is now a toddler, walking independently and exploring everything.',
       'curiousToddler':
-          'Your toddler is a question machine! Running, jumping, and climbing are favorites.',
+          'Your toddler is a question machine. Running, jumping, and climbing are favorites.',
       'theTwos':
-          "The terrific twos! Your child's personality is shining. Toilet training typically begins around this time.",
+          "The terrific twos. Your child's personality is shining. Toilet training typically begins around this time.",
       'preschooler':
           'Your child is blossoming into a social being. Sentences are complex and questions are endless.',
       'preK':
-          'Your child is almost ready for kindergarten! Most children can count to 10+, write their name, and tell detailed stories.',
+          'Your child is almost ready for kindergarten. Most children can count to 10+, write their name, and tell detailed stories.',
       'kindergartener':
-          'Five years old — what a journey! Your child is ready for formal schooling.',
+          'Five years old — quite a journey. Your child is ready for formal schooling.',
     },
     AppLang.amharic: {
       'newborn':
           'አዲስ ወለድዎ ከማህፀን ውጭ ለሕይወት እየተላመደ ነው። ቀን 14–17 ሰዓት ይተኛሉ፣ ለድምፅዎ ምላሽ ይሰጣሉ።',
       'earlyInfant': 'ልጅዎ የበለጠ ንቁ እና ተሳታፊ እየሆነ ነው። ፈገግታ በ6 ሳምንት ዙሪያ ይታያሉ።',
-      'discovering': 'ልጅዎ አሁን ሙሉ ጉጉት አለው! ጭንቅላቱን ቀጥ አድርጎ ሊይዝ ይችሉ።',
-      'explorer': 'ትልቅ ዝላይ! ጠጣር ምግቦችን ሊጀምር፣ ያለ ድጋፍ ሊቀመጥ ይችሉ።',
-      'almostToddler': 'ልጅዎ የመጀመሪያ ልደቱ አቅራቢያ ነው! የመጀመሪያ እርምጃዎቻቸውን ሊወስዱ ይችሉ።',
-      'firstToddler': 'እንኳን ደስ አለዎ! 🎂 ልጅዎ አሁን ቶዳለር ሲሆን ብቻቸውን ይሄዳሉ።',
-      'curiousToddler': 'ቶዳለርዎ ጥያቄ ማሽን ነው! መሮጥ፣ መዝለል ዋና ስራቸው ነው።',
-      'theTwos': 'አስደናቂ ሁለቶቹ! የልጅዎ ስብዕና ያበራሉ። የሽንት ቤት ሥልጠና ይጀምራሉ።',
+      'discovering': 'ልጅዎ አሁን ሙሉ ጉጉት አለው። ጭንቅላቱን ቀጥ አድርጎ ሊይዝ ይችሉ።',
+      'explorer': 'ትልቅ ዝላይ ነው። ጠጣር ምግቦችን ሊጀምር፣ ያለ ድጋፍ ሊቀመጥ ይችሉ።',
+      'almostToddler': 'ልጅዎ የመጀመሪያ ልደቱ አቅራቢያ ነው። የመጀመሪያ እርምጃዎቻቸውን ሊወስዱ ይችሉ።',
+      'firstToddler': 'እንኳን ደስ አለዎ። ልጅዎ አሁን ቶዳለር ሲሆን ብቻቸውን ይሄዳሉ።',
+      'curiousToddler': 'ቶዳለርዎ ጥያቄ ማሽን ነው። መሮጥ፣ መዝለል ዋና ስራቸው ነው።',
+      'theTwos': 'አስደናቂ ሁለቶቹ ናቸው። የልጅዎ ስብዕና ያበራሉ። የሽንት ቤት ሥልጠና ይጀምራሉ።',
       'preschooler': 'ልጅዎ ማህበራዊ ፍጡር እየሆኑ ናቸው። ዓረፍተ ነገሮቹ ውስብስብ ሆኑ።',
-      'preK': 'ልጅዎ ለኪንደርጋርተን ሊዘጋጁ ናቸው! ብዛት ልጆች እስከ 10+ ሊቆጥሩ ይችሉ።',
-      'kindergartener': 'አምስት ዓመት — ምን ያህል ጉዞ! ልጅዎ ለመደበኛ ትምህርት ዝግጁ ናቸው።',
+      'preK': 'ልጅዎ ለኪንደርጋርተን ሊዘጋጁ ናቸው። ብዛት ልጆች እስከ 10+ ሊቆጥሩ ይችሉ።',
+      'kindergartener': 'አምስት ዓመት — ምን ያህል ጉዞ ነው። ልጅዎ ለመደበኛ ትምህርት ዝግጁ ናቸው።',
     },
     AppLang.oromic: {
       'newborn':
@@ -1030,20 +1034,20 @@ class _SL {
       'earlyInfant':
           "Daa'imni kee ammayyuu hojjataafi hirmaataafi jira. Yeeyyiin torbaan 6tti mul'ata.",
       'discovering':
-          "Daa'imni kee amma aayiraali guutuu qaba! Mataa qabataa qabaachuu danda'u.",
-      'explorer': "Guddina guddaa! Daa'imni kee nyaata cimaa jalqabuu danda'a.",
+          "Daa'imni kee amma aayiraali guutuu qaba. Mataa qabataa qabaachuu danda'u.",
+      'explorer': "Guddina guddaa. Daa'imni kee nyaata cimaa jalqabuu danda'a.",
       'almostToddler':
-          "Daa'imni kee guyyaa dhalootaa jalqabaa isaa dhiyaatee jira!",
+          "Daa'imni kee guyyaa dhalootaa jalqabaa isaa dhiyaatee jira.",
       'firstToddler':
-          "Guyyaa dhalootaa jalqabaa nagaan baga gahe! 🎂 Bilisaan deema.",
+          "Guyyaa dhalootaa jalqabaa nagaan baga gahe. Bilisaan deema.",
       'curiousToddler':
-          "Ijoollee kee maashinii gaaffii! Fiiguun, utaaluun fi ol-bahuun jaalatamaa.",
-      'theTwos': '"Lama waggaa bareedaa"! Amalli daa\'immaa kee mul\'ata.',
+          "Ijoollee kee maashinii gaaffii. Fiiguun, utaaluun fi ol-bahuun jaalatamaa.",
+      'theTwos': '"Lama waggaa bareedaa" dha. Amalli daa\'immaa kee mul\'ata.',
       'preschooler':
           "Daa'imni kee hawaasa ta'aa jira. Murtoon amma xaxamaa dha.",
-      'preK': "Daa'imni kee kindergaartii dura qophii dha!",
+      'preK': "Daa'imni kee kindergaartii dura qophii dha.",
       'kindergartener':
-          "Waggaa shan — imala akkam! Daa'imni kee barumsaa qophaawaa dha.",
+          "Waggaa shan, imala guddaa dha. Daa'imni kee barumsaa qophaawaa dha.",
     },
   };
 
@@ -1053,62 +1057,62 @@ class _SL {
   static final _alerts = <AppLang, Map<String, String>>{
     AppLang.english: {
       'newborn':
-          '🌙 Your newborn needs feeding every 2–3 hours. Watch for hunger cues: rooting, lip smacking. Ensure tummy time for a few minutes daily.',
+          'Your newborn needs feeding every 2–3 hours. Watch for hunger cues: rooting, lip smacking. Ensure tummy time for a few minutes daily.',
       'earlyInfant':
-          "😊 Watch for your baby's first social smile around 6 weeks. Talk, sing, and make eye contact frequently.",
+          "Watch for your baby's first social smile around 6 weeks. Talk, sing, and make eye contact frequently.",
       'discovering':
-          '🎈 Your baby may start rolling — ensure safe sleep (always on back). Begin short play sessions with colorful toys.',
+          'Your baby may start rolling — ensure safe sleep (always on back). Begin short play sessions with colorful toys.',
       'explorer':
-          '🥄 Time to introduce solid foods! Start with single-ingredient purees. Introduce one new food every 3–5 days.',
+          'Time to introduce solid foods. Start with single-ingredient purees. Introduce one new food every 3–5 days.',
       'almostToddler':
-          '🚶 Baby-proof your home! Cover electrical outlets, secure heavy furniture. First steps may arrive any time.',
+          'Baby-proof your home. Cover electrical outlets, secure heavy furniture. First steps may arrive any time.',
       'firstToddler':
-          '🎉 First birthday! Your toddler should have 5+ words by 15 months. Establish a regular sleep routine.',
+          'First birthday. Your toddler should have 5+ words by 15 months. Establish a regular sleep routine.',
       'curiousToddler':
-          '🗣️ By 24 months your child should say 50+ words. If not, talk to your pediatrician.',
+          'By 24 months your child should say 50+ words. If not, talk to your pediatrician.',
       'theTwos':
-          '🎭 Toilet training signs: staying dry 2+ hours, showing interest. Start gently — never punish accidents.',
+          'Toilet training signs: staying dry 2+ hours, showing interest. Start gently — never punish accidents.',
       'preschooler':
-          '🎒 Prepare for preschool. Your 3-year-old should be able to play with other children and follow 3-step instructions.',
+          'Prepare for preschool. Your 3-year-old should be able to play with other children and follow 3-step instructions.',
       'preK':
-          '📚 Kindergarten prep: practice counting, identifying letters, and using scissors.',
+          'Kindergarten prep: practice counting, identifying letters, and using scissors.',
       'kindergartener':
-          '🌟 Your child has reached 5 years — a monumental achievement! They are ready for kindergarten.',
+          'Your child has reached 5 years — a monumental achievement. They are ready for kindergarten.',
     },
     AppLang.amharic: {
       'newborn':
-          '🌙 አዲስ ወለድዎ በ2–3 ሰዓት መመገብ ይፈልጋሉ። የራብ ምልክቶች ይፈልጉ። ዕለት ዕለት ሆድ ጊዜ ይስጡ።',
-      'earlyInfant': '😊 የልጅዎን የመጀመሪያ ፈገግታ ይፈልጉ (6 ሳምንት)። ብዙ ጊዜ ይናገሩ፣ ዘፈን ዘምሩ።',
-      'discovering': '🎈 ልጅዎ ሊሽከረከር ይችሉ — ደህንነቱ ያረጋግጡ። ቀለማማ ዕቃዎች ያቅርቡ።',
-      'explorer': '🥄 ጠጣር ምግቦችን ለመጀመር ጊዜ ደርሷል! ነጠላ ንጥረ ነገር ፑሬ ይጀምሩ።',
-      'almostToddler': '🚶 ቤትዎን ለሕፃናት ደህንነቱ ያረጋግጡ! የኤሌክትሪክ ቁጥቋጦዎችን ይሸፍኑ።',
-      'firstToddler': '🎉 የመጀመሪያ ልደት! ቶዳለርዎ እስከ 15 ወር 5+ ቃሎች ሊኖሩ ይገባሉ።',
-      'curiousToddler': '🗣️ በ24 ወር ልጅዎ 50+ ቃሎችን ሊናገሩ ይገባሉ። ካልሆነ ሐኪምዎን ያናግሩ።',
-      'theTwos': '🎭 የሽንት ቤት ሥልጠና ዝግጁነት: ለ2+ ሰዓት ደረቅ ሆኖ መቆየት።',
-      'preschooler': '🎒 ቅድመ ትምህርት ቤት ካለ ያዘጋጁ። ወጥ ያለ የምሽት ዑደት ይመሥርቱ።',
-      'preK': '📚 ኪንደርጋርተን ዝግጅት: ዕቃዎችን መቁጠር ይለማመዱ።',
-      'kindergartener': '🌟 ልጅዎ 5 ዓመት ደርሷል — ታላቅ ስኬት! ለኪንደርጋርተን ዝግጁ ናቸው።',
+          'አዲስ ወለድዎ በ2–3 ሰዓት መመገብ ይፈልጋሉ። የራብ ምልክቶች ይፈልጉ። ዕለት ዕለት ሆድ ጊዜ ይስጡ።',
+      'earlyInfant': 'የልጅዎን የመጀመሪያ ፈገግታ ይፈልጉ (6 ሳምንት)። ብዙ ጊዜ ይናገሩ፣ ዘፈን ዘምሩ።',
+      'discovering': 'ልጅዎ ሊሽከረከር ይችሉ — ደህንነቱ ያረጋግጡ። ቀለማማ ዕቃዎች ያቅርቡ።',
+      'explorer': 'ጠጣር ምግቦችን ለመጀመር ጊዜ ደርሷል። ነጠላ ንጥረ ነገር ፑሬ ይጀምሩ።',
+      'almostToddler': 'ቤትዎን ለሕፃናት ደህንነቱ ያረጋግጡ። የኤሌክትሪክ ቁጥቋጦዎችን ይሸፍኑ።',
+      'firstToddler': 'የመጀመሪያ ልደት። ቶዳለርዎ እስከ 15 ወር 5+ ቃሎች ሊኖሩ ይገባሉ።',
+      'curiousToddler': 'በ24 ወር ልጅዎ 50+ ቃሎችን ሊናገሩ ይገባሉ። ካልሆነ ሐኪምዎን ያናግሩ።',
+      'theTwos': 'የሽንት ቤት ሥልጠና ዝግጁነት: ለ2+ ሰዓት ደረቅ ሆኖ መቆየት።',
+      'preschooler': 'ቅድመ ትምህርት ቤት ካለ ያዘጋጁ። ወጥ ያለ የምሽት ዑደት ይመሥርቱ።',
+      'preK': 'ኪንደርጋርተን ዝግጅት: ዕቃዎችን መቁጠር ይለማመዱ።',
+      'kindergartener': 'ልጅዎ 5 ዓመት ደርሷል — ታላቅ ስኬት። ለኪንደርጋርተን ዝግጁ ናቸው።',
     },
     AppLang.oromic: {
       'newborn':
-          "🌙 Daa'imni kee sa'aatii 2–3tti nyaachifamuu barbaada. Guyyaa guyyaa yeroo garaa gadi-buusu kenni.",
+          "Daa'imni kee sa'aatii 2–3tti nyaachifamuu barbaada. Guyyaa guyyaa yeroo garaa gadi-buusu kenni.",
       'earlyInfant':
-          "😊 Yeeyyii hawaasaa jalqabaa (torbaan 6) hordofi. Yeroo baay'ee haasawuu fi sirbi.",
+          "Yeeyyii hawaasaa jalqabaa (torbaan 6) hordofi. Yeroo baay'ee haasawuu fi sirbi.",
       'discovering':
-          "🎈 Daa'imni kee garagaluuf jalqabuu danda'a — hirribaa nagaa mirkaneessi.",
+          "Daa'imni kee garagaluuf jalqabuu danda'a — hirribaa nagaa mirkaneessi.",
       'explorer':
-          "🥄 Nyaata cimaa seensisuu yeroon isaa dhufeera! Puree tokko-tokko jalqabi.",
+          "Nyaata cimaa seensisuu yeroon isaa dhufeera. Puree tokko-tokko jalqabi.",
       'almostToddler':
-          "🚶 Mana kee daa'imniif nagaa taasisi! Tarkaanfii jalqabaa yeroo kamiiyyuu dhufa.",
+          "Mana kee daa'imniif nagaa taasisi. Tarkaanfii jalqabaa yeroo kamiiyyuu dhufa.",
       'firstToddler':
-          "🎉 Guyyaa dhalootaa jalqabaa! Ijoollee kee hanga ji'a 15tti jecha 5+ qabaachuu qaba.",
+          "Guyyaa dhalootaa jalqabaa. Ijoollee kee hanga ji'a 15tti jecha 5+ qabaachuu qaba.",
       'curiousToddler':
-          "🗣️ Ji'a 24tti, daa'imni kee jecha 50+ dubbachuu qabu. Yoo dhabe, dokitara gaafadhu.",
+          "Ji'a 24tti, daa'imni kee jecha 50+ dubbachuu qabu. Yoo dhabe, dokitara gaafadhu.",
       'theTwos':
-          "🎭 Mallattoo qophii leenjii mana fincaanii: sa'aatii 2+ gogaa ta'ee turu.",
-      'preschooler': "🎒 Mana barumsaa dura qopheessi yoo jiraate.",
-      'preK': "📚 Qophii kindergaartii: meeshaa lakkoofsuu leenjisi.",
-      'kindergartener': "🌟 Daa'imni kee waggaa 5 gahuu — milkaa'ina guddaa!",
+          "Mallattoo qophii leenjii mana fincaanii: sa'aatii 2+ gogaa ta'ee turu.",
+      'preschooler': "Mana barumsaa dura qopheessi yoo jiraate.",
+      'preK': "Qophii kindergaartii: meeshaa lakkoofsuu leenjisi.",
+      'kindergartener': "Daa'imni kee waggaa 5 gahuu — milkaa'ina guddaa.",
     },
   };
 
@@ -1733,8 +1737,8 @@ const List<_Stage> _allStages = [
       key: 'newborn',
       name: 'Newborn',
       ageRange: 'Birth – 1 Month',
-      emoji: '🐣',
-      alertEmoji: '🌙',
+      emoji: Icons.child_friendly_rounded,
+      alertEmoji: Icons.bedtime_rounded,
       minMonth: 0,
       maxMonth: 0,
       milestones: [
@@ -1750,22 +1754,22 @@ const List<_Stage> _allStages = [
       ],
       devAreas: [
         _DevArea(
-            emoji: '👁️',
+            emoji: Icons.visibility_rounded,
             title: 'Vision',
             detail: 'Focuses 8–12 inches',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '👂',
+            emoji: Icons.hearing_rounded,
             title: 'Hearing',
             detail: 'Startles to sounds',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '💪',
+            emoji: Icons.fitness_center_rounded,
             title: 'Motor',
             detail: 'Tight fists, rooting reflex',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '❤️',
+            emoji: Icons.favorite_rounded,
             title: 'Bonding',
             detail: 'Skin-to-skin contact',
             bgColor: _C.bluePale),
@@ -1774,8 +1778,8 @@ const List<_Stage> _allStages = [
       key: 'earlyInfant',
       name: 'Early Infant',
       ageRange: '1 – 3 Months',
-      emoji: '🌱',
-      alertEmoji: '😊',
+      emoji: Icons.eco_rounded,
+      alertEmoji: Icons.sentiment_satisfied_rounded,
       minMonth: 1,
       maxMonth: 2,
       milestones: [
@@ -1793,22 +1797,22 @@ const List<_Stage> _allStages = [
       ],
       devAreas: [
         _DevArea(
-            emoji: '😄',
+            emoji: Icons.mood_rounded,
             title: 'Social',
             detail: 'First smiles',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '🗣️',
+            emoji: Icons.record_voice_over_rounded,
             title: 'Language',
             detail: 'Cooing, gurgling',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '🏋️',
+            emoji: Icons.fitness_center_rounded,
             title: 'Motor',
             detail: 'Lifts head',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '🧠',
+            emoji: Icons.psychology_rounded,
             title: 'Cognitive',
             detail: 'Recognizes faces',
             bgColor: _C.bluePale),
@@ -1817,8 +1821,8 @@ const List<_Stage> _allStages = [
       key: 'discovering',
       name: 'Discovering',
       ageRange: '3 – 6 Months',
-      emoji: '🌻',
-      alertEmoji: '🎈',
+      emoji: Icons.local_florist_rounded,
+      alertEmoji: Icons.celebration_rounded,
       minMonth: 3,
       maxMonth: 5,
       milestones: [
@@ -1836,22 +1840,22 @@ const List<_Stage> _allStages = [
       ],
       devAreas: [
         _DevArea(
-            emoji: '🤲',
+            emoji: Icons.back_hand_rounded,
             title: 'Motor',
             detail: 'Reaches, grabs, rolls',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '😂',
+            emoji: Icons.sentiment_very_satisfied_rounded,
             title: 'Social',
             detail: 'Laughs aloud',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '👅',
+            emoji: Icons.touch_app_rounded,
             title: 'Sensory',
             detail: 'Explores with mouth',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '👶',
+            emoji: Icons.child_care_rounded,
             title: 'Language',
             detail: 'Babbles',
             bgColor: _C.bluePale),
@@ -1860,8 +1864,8 @@ const List<_Stage> _allStages = [
       key: 'explorer',
       name: 'Explorer',
       ageRange: '6 – 9 Months',
-      emoji: '🐥',
-      alertEmoji: '🥄',
+      emoji: Icons.toys_rounded,
+      alertEmoji: Icons.restaurant_rounded,
       minMonth: 6,
       maxMonth: 8,
       milestones: [
@@ -1876,22 +1880,22 @@ const List<_Stage> _allStages = [
       ],
       devAreas: [
         _DevArea(
-            emoji: '🧲',
+            emoji: Icons.explore_rounded,
             title: 'Motor',
             detail: 'Sits alone, may crawl',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '🍎',
+            emoji: Icons.restaurant_rounded,
             title: 'Feeding',
             detail: 'First solid foods',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '🎭',
+            emoji: Icons.theater_comedy_rounded,
             title: 'Emotions',
             detail: 'Stranger anxiety',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '🎵',
+            emoji: Icons.music_note_rounded,
             title: 'Language',
             detail: 'Babbles "baba"',
             bgColor: _C.bluePale),
@@ -1900,8 +1904,8 @@ const List<_Stage> _allStages = [
       key: 'almostToddler',
       name: 'Almost Toddler',
       ageRange: '9 – 12 Months',
-      emoji: '🚀',
-      alertEmoji: '🚶',
+      emoji: Icons.rocket_launch_rounded,
+      alertEmoji: Icons.directions_walk_rounded,
       minMonth: 9,
       maxMonth: 11,
       milestones: [
@@ -1918,22 +1922,22 @@ const List<_Stage> _allStages = [
       ],
       devAreas: [
         _DevArea(
-            emoji: '🦵',
+            emoji: Icons.directions_walk_rounded,
             title: 'Motor',
             detail: 'Stands with support',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '💬',
+            emoji: Icons.chat_bubble_rounded,
             title: 'Language',
             detail: 'First words',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '🧩',
+            emoji: Icons.extension_rounded,
             title: 'Cognitive',
             detail: 'Object permanence',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '🤗',
+            emoji: Icons.volunteer_activism_rounded,
             title: 'Social',
             detail: 'Points at objects',
             bgColor: _C.bluePale),
@@ -1942,8 +1946,8 @@ const List<_Stage> _allStages = [
       key: 'firstToddler',
       name: 'First Toddler',
       ageRange: '12 – 18 Months',
-      emoji: '🦋',
-      alertEmoji: '🎉',
+      emoji: Icons.auto_awesome_rounded,
+      alertEmoji: Icons.celebration_rounded,
       minMonth: 12,
       maxMonth: 17,
       milestones: [
@@ -1960,22 +1964,22 @@ const List<_Stage> _allStages = [
       ],
       devAreas: [
         _DevArea(
-            emoji: '🚶',
+            emoji: Icons.directions_walk_rounded,
             title: 'Walking',
             detail: 'Independent walking',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '📖',
+            emoji: Icons.menu_book_rounded,
             title: 'Language',
             detail: 'Growing vocabulary',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '🎨',
+            emoji: Icons.palette_rounded,
             title: 'Play',
             detail: 'Imitative play',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '😤',
+            emoji: Icons.mood_bad_rounded,
             title: 'Emotions',
             detail: 'Tantrums begin',
             bgColor: _C.bluePale),
@@ -1984,8 +1988,8 @@ const List<_Stage> _allStages = [
       key: 'curiousToddler',
       name: 'Curious Toddler',
       ageRange: '18 – 24 Months',
-      emoji: '🔍',
-      alertEmoji: '🗣️',
+      emoji: Icons.search_rounded,
+      alertEmoji: Icons.record_voice_over_rounded,
       minMonth: 18,
       maxMonth: 23,
       milestones: [
@@ -2000,22 +2004,22 @@ const List<_Stage> _allStages = [
       ],
       devAreas: [
         _DevArea(
-            emoji: '🏃',
+            emoji: Icons.directions_run_rounded,
             title: 'Gross Motor',
             detail: 'Runs, climbs, kicks',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '✏️',
+            emoji: Icons.edit_rounded,
             title: 'Fine Motor',
             detail: 'Scribbles, stacks',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '🧸',
+            emoji: Icons.toys_rounded,
             title: 'Pretend Play',
             detail: 'Imaginative play',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '💬',
+            emoji: Icons.chat_bubble_rounded,
             title: 'Language',
             detail: '50+ words',
             bgColor: _C.bluePale),
@@ -2024,8 +2028,8 @@ const List<_Stage> _allStages = [
       key: 'theTwos',
       name: 'The Twos',
       ageRange: '2 – 3 Years',
-      emoji: '🌈',
-      alertEmoji: '🎭',
+      emoji: Icons.color_lens_rounded,
+      alertEmoji: Icons.theater_comedy_rounded,
       minMonth: 24,
       maxMonth: 35,
       milestones: [
@@ -2041,22 +2045,22 @@ const List<_Stage> _allStages = [
       ],
       devAreas: [
         _DevArea(
-            emoji: '🚴',
+            emoji: Icons.directions_bike_rounded,
             title: 'Motor',
             detail: 'Pedals tricycle',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '🎨',
+            emoji: Icons.palette_rounded,
             title: 'Drawing',
             detail: 'Draws circles',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '🤝',
+            emoji: Icons.handshake_rounded,
             title: 'Social',
             detail: 'Parallel play',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '💡',
+            emoji: Icons.lightbulb_rounded,
             title: 'Thinking',
             detail: 'Sorts shapes/colors',
             bgColor: _C.bluePale),
@@ -2065,8 +2069,8 @@ const List<_Stage> _allStages = [
       key: 'preschooler',
       name: 'Preschooler',
       ageRange: '3 – 4 Years',
-      emoji: '🏫',
-      alertEmoji: '🎒',
+      emoji: Icons.school_rounded,
+      alertEmoji: Icons.backpack_rounded,
       minMonth: 36,
       maxMonth: 47,
       milestones: [
@@ -2084,22 +2088,22 @@ const List<_Stage> _allStages = [
       ],
       devAreas: [
         _DevArea(
-            emoji: '🏃',
+            emoji: Icons.directions_run_rounded,
             title: 'Active Play',
             detail: 'Hops, skips, climbs',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '📝',
+            emoji: Icons.edit_note_rounded,
             title: 'Pre-Writing',
             detail: 'Copies letters',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '👥',
+            emoji: Icons.groups_rounded,
             title: 'Friends',
             detail: 'Cooperative play',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '❓',
+            emoji: Icons.help_outline_rounded,
             title: 'Curiosity',
             detail: 'Asks "why" constantly',
             bgColor: _C.bluePale),
@@ -2108,8 +2112,8 @@ const List<_Stage> _allStages = [
       key: 'preK',
       name: 'Pre-Kindergarten',
       ageRange: '4 – 5 Years',
-      emoji: '⭐',
-      alertEmoji: '📚',
+      emoji: Icons.star_rounded,
+      alertEmoji: Icons.menu_book_rounded,
       minMonth: 48,
       maxMonth: 59,
       milestones: [
@@ -2125,22 +2129,22 @@ const List<_Stage> _allStages = [
       ],
       devAreas: [
         _DevArea(
-            emoji: '🔢',
+            emoji: Icons.calculate_rounded,
             title: 'Numbers',
             detail: 'Counts 10+',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '📖',
+            emoji: Icons.menu_book_rounded,
             title: 'Literacy',
             detail: 'Recognizes letters',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '🏅',
+            emoji: Icons.emoji_events_rounded,
             title: 'Self-Care',
             detail: 'Dresses independently',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '🌍',
+            emoji: Icons.public_rounded,
             title: 'World',
             detail: 'Knows address',
             bgColor: _C.bluePale),
@@ -2149,8 +2153,8 @@ const List<_Stage> _allStages = [
       key: 'kindergartener',
       name: 'Kindergartener',
       ageRange: '5 Years',
-      emoji: '🎓',
-      alertEmoji: '🌟',
+      emoji: Icons.workspace_premium_rounded,
+      alertEmoji: Icons.star_rounded,
       minMonth: 60,
       maxMonth: 999,
       milestones: [
@@ -2166,22 +2170,22 @@ const List<_Stage> _allStages = [
       ],
       devAreas: [
         _DevArea(
-            emoji: '📚',
+            emoji: Icons.menu_book_rounded,
             title: 'Reading',
             detail: 'Recognizes sight words',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '🔬',
+            emoji: Icons.science_rounded,
             title: 'Science',
             detail: 'Asks "how" and "why"',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '🤝',
+            emoji: Icons.handshake_rounded,
             title: 'Empathy',
             detail: 'Understands others',
             bgColor: _C.bluePale),
         _DevArea(
-            emoji: '🎯',
+            emoji: Icons.track_changes_rounded,
             title: 'Focus',
             detail: 'Sits 10–15 min tasks',
             bgColor: _C.bluePale),
@@ -2295,19 +2299,28 @@ class _AfterBirthScreenState extends State<AfterBirthScreen>
       barrierColor: _C.blueDeep.withOpacity(0.5),
       builder: (_) => _DatePickerDialog(initialDate: _birthDate, lang: _lang),
     );
-    if (result != null) {
-      setState(() {
-        _birthDate = result;
-        _dateEntered = true;
-      });
-      _fadeCtrl.reset();
-      _slideCtrl.reset();
-      _fadeCtrl.forward();
-      _slideCtrl.forward();
-      HapticFeedback.lightImpact();
-      appState.setChildBirthDate(result);
-      NotificationService.rescheduleAll(appState);
+    if (result == null) return;
+    if (appState.childBirthDate != null) {
+      final confirmed = await showConfirmDialog(
+        context,
+        title: _t('confirmUpdateTitle'),
+        message: _t('confirmUpdateBody'),
+        confirmLabel: _t('ok'),
+        cancelLabel: _t('cancel'),
+      );
+      if (!confirmed) return;
     }
+    setState(() {
+      _birthDate = result;
+      _dateEntered = true;
+    });
+    _fadeCtrl.reset();
+    _slideCtrl.reset();
+    _fadeCtrl.forward();
+    _slideCtrl.forward();
+    HapticFeedback.lightImpact();
+    await appState.setChildBirthDate(result);
+    await NotificationService.rescheduleAll(appState);
   }
 
   // ── BUILD ──────────────────────────────────────────────────
@@ -2379,7 +2392,9 @@ class _AfterBirthScreenState extends State<AfterBirthScreen>
               ],
             ),
             child:
-                const Center(child: Text('👶', style: TextStyle(fontSize: 85))),
+                const Center(
+                child: Icon(Icons.child_care_rounded,
+                    size: 85, color: Colors.white)),
           ),
         ),
         const SizedBox(height: 28),
@@ -2402,12 +2417,18 @@ class _AfterBirthScreenState extends State<AfterBirthScreen>
             runSpacing: 10,
             alignment: WrapAlignment.center,
             children: [
-              _pill('🧠', _t('brainDev'), const Color(0xFFE3F2FD)),
-              _pill('🍼', _t('feedingGuide'), const Color(0xFFE0F7FA)),
-              _pill('💉', _t('vaccination'), const Color(0xFFE8EAF6)),
-              _pill('📏', _t('growthTracking'), const Color(0xFFF3E5F5)),
-              _pill('🎯', _t('milestones'), const Color(0xFFE8F5E9)),
-              _pill('❤️', _t('healthTips'), const Color(0xFFFCE4EC)),
+              _pill(Icons.psychology_rounded, _t('brainDev'),
+                  const Color(0xFFE3F2FD)),
+              _pill(Icons.local_drink_rounded, _t('feedingGuide'),
+                  const Color(0xFFE0F7FA)),
+              _pill(Icons.vaccines_rounded, _t('vaccination'),
+                  const Color(0xFFE8EAF6)),
+              _pill(Icons.straighten_rounded, _t('growthTracking'),
+                  const Color(0xFFF3E5F5)),
+              _pill(Icons.track_changes_rounded, _t('milestones'),
+                  const Color(0xFFE8F5E9)),
+              _pill(Icons.favorite_rounded, _t('healthTips'),
+                  const Color(0xFFFCE4EC)),
             ]),
         const SizedBox(height: 36),
         GestureDetector(
@@ -2458,7 +2479,7 @@ class _AfterBirthScreenState extends State<AfterBirthScreen>
     );
   }
 
-  Widget _pill(String emoji, String label, Color bg) {
+  Widget _pill(IconData icon, String label, Color bg) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
       decoration: BoxDecoration(
@@ -2473,7 +2494,7 @@ class _AfterBirthScreenState extends State<AfterBirthScreen>
         ],
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Text(emoji, style: const TextStyle(fontSize: 14)),
+        Icon(icon, size: 14, color: _C.blueDeep),
         const SizedBox(width: 7),
         Flexible(
             child: Text(label,
@@ -2558,7 +2579,7 @@ class _AfterBirthScreenState extends State<AfterBirthScreen>
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: Colors.white.withOpacity(0.25)),
                   ),
-                  child: Text('⭐ ${_SL.name(_lang, stage.key)}',
+                  child: Text(_SL.name(_lang, stage.key),
                       style: const TextStyle(
                           fontSize: 11,
                           color: Colors.white,
@@ -2591,7 +2612,7 @@ class _AfterBirthScreenState extends State<AfterBirthScreen>
                 ]),
               ])),
           const SizedBox(width: 8),
-          Text(stage.emoji, style: const TextStyle(fontSize: 60)),
+          Icon(stage.emoji, size: 60, color: Colors.white),
         ]),
         const SizedBox(height: 20),
         // Progress bar
@@ -2659,22 +2680,24 @@ class _AfterBirthScreenState extends State<AfterBirthScreen>
         const SizedBox(height: 16),
         Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
           Expanded(
-              child: _stat('📅', _t('stage'),
+              child: _stat(Icons.calendar_today_rounded, _t('stage'),
                   _SL.name(_lang, stage.key).split(' ').first)),
           Container(width: 1, height: 40, color: Colors.white24),
-          Expanded(child: _stat('📆', _t('month'), '${months}${_t('mo')}')),
+          Expanded(
+              child: _stat(Icons.calendar_month_rounded, _t('month'),
+                  '${months}${_t('mo')}')),
           Container(width: 1, height: 40, color: Colors.white24),
           Expanded(
-              child: _stat(
-                  '🎯', _t('milestoneCount'), '${stage.milestones.length}')),
+              child: _stat(Icons.track_changes_rounded, _t('milestoneCount'),
+                  '${stage.milestones.length}')),
         ]),
       ]),
     );
   }
 
-  Widget _stat(String emoji, String label, String value) {
+  Widget _stat(IconData icon, String label, String value) {
     return Column(children: [
-      Text(emoji, style: const TextStyle(fontSize: 22)),
+      Icon(icon, size: 22, color: Colors.white),
       const SizedBox(height: 3),
       Text(label,
           style: const TextStyle(
@@ -2714,7 +2737,7 @@ class _AfterBirthScreenState extends State<AfterBirthScreen>
                   colors: [Color(0xFFB3E5FC), Color(0xFF81D4FA)]),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Text(stage.emoji, style: const TextStyle(fontSize: 26)),
+            child: Icon(stage.emoji, size: 26, color: _C.bluePrimary),
           ),
           const SizedBox(width: 13),
           Expanded(
@@ -2832,7 +2855,8 @@ class _AfterBirthScreenState extends State<AfterBirthScreen>
                 color: _C.bluePrimary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20)),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              const Text('🔔', style: TextStyle(fontSize: 12)),
+              const Icon(Icons.notifications_active_rounded,
+                  size: 12, color: _C.blueDeep),
               const SizedBox(width: 5),
               Text(_t('rightNow'),
                   style: const TextStyle(
@@ -2847,7 +2871,7 @@ class _AfterBirthScreenState extends State<AfterBirthScreen>
                   fontSize: 13, color: _C.textDark, height: 1.6)),
         ])),
         const SizedBox(width: 10),
-        Text(stage.alertEmoji, style: const TextStyle(fontSize: 40)),
+        Icon(stage.alertEmoji, size: 40, color: _C.bluePrimary),
       ]),
     );
   }
@@ -2900,7 +2924,7 @@ class _AfterBirthScreenState extends State<AfterBirthScreen>
         ],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(a.emoji, style: const TextStyle(fontSize: 28)),
+        Icon(a.emoji, size: 28, color: _C.bluePrimary),
         const Spacer(),
         Text(a.title,
             style: const TextStyle(
@@ -2941,7 +2965,8 @@ class _AfterBirthScreenState extends State<AfterBirthScreen>
                   colors: [Color(0xFFB3E5FC), Color(0xFF4FC3F7)]),
               borderRadius: BorderRadius.circular(13),
             ),
-            child: const Text('💉', style: TextStyle(fontSize: 22)),
+            child: const Icon(Icons.vaccines_rounded,
+                size: 22, color: _C.bluePrimary),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -3018,7 +3043,8 @@ class _AfterBirthScreenState extends State<AfterBirthScreen>
                   colors: [Color(0xFFB2EBF2), Color(0xFF80DEEA)]),
               borderRadius: BorderRadius.circular(13),
             ),
-            child: const Text('🥗', style: TextStyle(fontSize: 22)),
+            child: const Icon(Icons.restaurant_rounded,
+                size: 22, color: _C.bluePrimary),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -3087,8 +3113,9 @@ class _AfterBirthScreenState extends State<AfterBirthScreen>
                         : null,
                   ),
                   child: Center(
-                      child: Text(stage.emoji,
-                          style: const TextStyle(fontSize: 20))),
+                      child: Icon(stage.emoji,
+                          size: 20,
+                          color: isFirst ? Colors.white : _C.textMedium)),
                 ),
                 if (i < upcoming.length - 1)
                   Container(

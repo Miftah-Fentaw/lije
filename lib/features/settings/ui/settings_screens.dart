@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:lije/core/services/notification_service.dart';
-import 'package:lije/features/home/models/app_state.dart';
+import 'package:lije/core/widgets/confirm_dialog.dart';
+import 'package:lije/features/auth/services/auth_storage.dart';
+import 'package:lije/features/auth/ui/signup_screen.dart';
 import 'package:lije/core/constants/app_assets.dart';
 import 'package:lije/models/models.dart';
 
@@ -101,6 +103,32 @@ class AppSettingsScreen extends StatelessWidget {
                     ),
                   ),
                   showArrow: false,
+                ),
+                _divider(),
+                _SettingsTile(
+                  icon: Icons.logout_rounded,
+                  title: LS.get(lang, 'logout'),
+                  iconColor: C.error,
+                  iconBg: C.errorLight,
+                  titleColor: C.error,
+                  onTap: () async {
+                    final confirmed = await showConfirmDialog(
+                      context,
+                      title: LS.get(lang, 'logoutConfirmTitle'),
+                      message: LS.get(lang, 'logoutConfirmBody'),
+                      confirmLabel: LS.get(lang, 'ok'),
+                      cancelLabel: LS.get(lang, 'cancel'),
+                    );
+                    if (!confirmed) return;
+                    await NotificationService.cancelAll();
+                    await appState.clearUser();
+                    await AuthStorage.clear();
+                    if (!context.mounted) return;
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (_) => const SignupScreen()),
+                      (route) => false,
+                    );
+                  },
                 ),
               ],
             ),
@@ -458,6 +486,9 @@ class _SettingsTile extends StatelessWidget {
   final Widget? trailing;
   final bool showArrow;
   final VoidCallback? onTap;
+  final Color? iconColor;
+  final Color? iconBg;
+  final Color? titleColor;
 
   const _SettingsTile({
     required this.icon,
@@ -465,6 +496,9 @@ class _SettingsTile extends StatelessWidget {
     this.trailing,
     this.showArrow = true,
     this.onTap,
+    this.iconColor,
+    this.iconBg,
+    this.titleColor,
   });
 
   @override
@@ -479,17 +513,17 @@ class _SettingsTile extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: C.lightBlue,
+                color: iconBg ?? C.lightBlue,
                 borderRadius: BorderRadius.circular(11),
               ),
-              child: Icon(icon, color: C.darkBlue, size: 20),
+              child: Icon(icon, color: iconColor ?? C.darkBlue, size: 20),
             ),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
-                  color: C.darkBlue,
+                style: TextStyle(
+                  color: titleColor ?? C.darkBlue,
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                 ),
