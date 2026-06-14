@@ -6,8 +6,6 @@ import 'package:lije/app/shell/main_shell.dart';
 import 'package:lije/core/constants/app_assets.dart';
 import 'package:lije/core/l10n/strings.dart';
 import 'package:lije/core/theme/colors.dart';
-import 'package:lije/core/services/notification_service.dart';
-import 'package:lije/features/home/models/app_state.dart';
 import 'package:lije/features/auth/services/auth_storage.dart';
 import 'package:lije/features/auth/ui/signup_screen.dart';
 
@@ -37,7 +35,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 1200),
     );
 
     _logoScale = Tween<double>(begin: 0.82, end: 1.0).animate(
@@ -77,12 +75,11 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _goHome() async {
     final userFuture = AuthStorage.loadUser();
-    await Future.delayed(const Duration(milliseconds: 2800));
+    await Future.wait([
+      userFuture,
+      Future.delayed(const Duration(milliseconds: 1200)),
+    ]);
     final user = await userFuture;
-    if (user != null) {
-      await appState.bindUser(user.supabaseId);
-      await NotificationService.rescheduleAll(appState);
-    }
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
@@ -92,7 +89,7 @@ class _SplashScreenState extends State<SplashScreen>
           opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
           child: child,
         ),
-        transitionDuration: const Duration(milliseconds: 450),
+        transitionDuration: const Duration(milliseconds: 300),
       ),
     );
   }
