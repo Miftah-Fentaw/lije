@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -85,6 +87,37 @@ class AppSettingsScreen extends StatelessWidget {
                         builder: (_) => const RemindersScreen()),
                   ),
                 ),
+                _divider(),
+                _SettingsTile(
+                  icon: Icons.notifications_active_rounded,
+                  title: LS.get(lang, 'notifyPreviewTitle'),
+                  onTap: () async {
+                    HapticFeedback.lightImpact();
+                    if (!context.mounted) return;
+                    final granted =
+                        await NotificationService.areNotificationsEnabled();
+                    if (granted != true && context.mounted) {
+                      await NotificationService.maybePromptForPermissions(
+                          context, appState);
+                    }
+                    final ok = await NotificationService.showPreviewNotification(
+                        appState);
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          ok
+                              ? LS.get(lang, 'notifyPreviewSent')
+                              : LS.get(lang, 'notifyPreviewFailed'),
+                        ),
+                        backgroundColor: ok ? C.darkBlue : C.error,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
             const SizedBox(height: 20),
@@ -119,15 +152,30 @@ class AppSettingsScreen extends StatelessWidget {
                       confirmLabel: LS.get(lang, 'ok'),
                       cancelLabel: LS.get(lang, 'cancel'),
                     );
-                    if (!confirmed) return;
-                    await NotificationService.cancelAll();
+                    if (!confirmed || !context.mounted) return;
+
                     await appState.clearUser();
                     await AuthStorage.clear();
                     if (!context.mounted) return;
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (_) => const SignupScreen()),
+
+                    await Navigator.of(context, rootNavigator: true)
+                        .pushAndRemoveUntil(
+                      PageRouteBuilder(
+                        pageBuilder: (_, __, ___) => const SignupScreen(),
+                        transitionsBuilder: (_, animation, __, child) =>
+                            FadeTransition(
+                          opacity: CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.easeOut,
+                          ),
+                          child: child,
+                        ),
+                        transitionDuration: const Duration(milliseconds: 300),
+                      ),
                       (route) => false,
                     );
+
+                    unawaited(NotificationService.cancelAll());
                   },
                 ),
               ],
@@ -207,7 +255,15 @@ class _NotificationToggleState extends State<_NotificationToggle> {
             activeColor: C.darkBlue,
             onChanged: (v) async {
               HapticFeedback.selectionClick();
-              await NotificationService.setEnabled(v, appState);
+              if (v) {
+                await NotificationService.setEnabled(true, appState);
+                if (context.mounted) {
+                  await NotificationService.maybePromptForPermissions(
+                      context, appState);
+                }
+              } else {
+                await NotificationService.setEnabled(false, appState);
+              }
             },
           ),
         ],
@@ -551,7 +607,7 @@ class RemindersScreen extends StatelessWidget {
       builder: (_, lang, __) => ListenableBuilder(
         listenable: appState,
         builder: (_, __) {
-          final items = NotificationService.plannedReminders(appState);
+          final items = NotificationService.upcomingNotifications(appState);
           return Scaffold(
             backgroundColor: C.bgPage,
             appBar: _appBar(context, LS.get(lang, 'remindersTitle')),
@@ -582,10 +638,36 @@ class RemindersScreen extends StatelessWidget {
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.all(16),
-                    itemCount: items.length,
+                    itemCount: items.length + 1,
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (_, i) {
-                      final r = items[i];
+                      if (i == 0) {
+                        return Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: C.lightBlue.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.info_outline_rounded,
+                                  size: 18, color: C.darkBlue),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  LS.get(lang, 'remindersScheduledNote'),
+                                  style: const TextStyle(
+                                    color: C.darkBlue,
+                                    fontSize: 12,
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      final r = items[i - 1];
                       return Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
@@ -594,6 +676,7 @@ class RemindersScreen extends StatelessWidget {
                           border: Border.all(color: C.lightBlue),
                         ),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
                               width: 40,
@@ -614,9 +697,20 @@ class RemindersScreen extends StatelessWidget {
                                           color: C.darkBlue,
                                           fontWeight: FontWeight.w800,
                                           fontSize: 14)),
+                                  const SizedBox(height: 4),
+                                  Text(r.body,
+                                      maxLines: 3,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                          color: C.textDark,
+                                          fontSize: 13,
+                                          height: 1.35)),
+                                  const SizedBox(height: 6),
                                   Text(r.subtitle,
                                       style: const TextStyle(
-                                          color: C.textLight, fontSize: 12)),
+                                          color: C.textLight,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600)),
                                 ],
                               ),
                             ),

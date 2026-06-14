@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lije/core/constants/app_assets.dart';
+import 'package:lije/core/services/notification_service.dart';
 import 'package:lije/models/models.dart';
 import 'settings_screens.dart';
 
@@ -36,6 +37,34 @@ class SettingsTab extends StatelessWidget {
                     const SizedBox(height: 20),
                     _sectionLabel(LS.get(lang, 'settingsGeneral')),
                     _menuCard(context, lang, [
+                      _MenuItem(
+                        icon: Icons.notifications_active_rounded,
+                        title: LS.get(lang, 'notifyPreviewTitle'),
+                        onTap: () async {
+                          if (!context.mounted) return;
+                          final granted =
+                              await NotificationService.areNotificationsEnabled();
+                          if (granted != true && context.mounted) {
+                            await NotificationService.maybePromptForPermissions(
+                                context, appState);
+                          }
+                          final ok =
+                              await NotificationService.showPreviewNotification(
+                                  appState);
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                ok
+                                    ? LS.get(lang, 'notifyPreviewSent')
+                                    : LS.get(lang, 'notifyPreviewFailed'),
+                              ),
+                              backgroundColor: ok ? C.darkBlue : C.error,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                      ),
                       _MenuItem(
                         icon: Icons.tune_rounded,
                         title: LS.get(lang, 'settings'),
