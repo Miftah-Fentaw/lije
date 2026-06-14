@@ -1,14 +1,18 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart' show IconData, Icons;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:lije/core/l10n/strings.dart';
-import 'package:lije/features/during_pregnancy/models/week_registry.dart';
+import 'package:lije/core/services/notification_content.dart';
+import 'package:lije/core/widgets/notification_permission_dialog.dart';
+import 'package:lije/features/auth/services/auth_storage.dart';
 import 'package:lije/features/home/models/app_state.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
-/// Local pregnancy & baby reminders.
+/// Local pregnancy, baby & discover daily reminders.
 class NotificationService {
   NotificationService._();
 
@@ -17,60 +21,156 @@ class NotificationService {
 
   static bool _ready = false;
 
-  /// Weekly pregnancy-tip notifications use ids `weeklyBaseId + week`
-  /// for week = 1..maxPregnancyWeeks.
-  static const weeklyBaseId = 1000;
-  static const maxPregnancyWeeks = 40;
+  /// Daily pregnancy notifications: id = [pregnancyDailyBase] + gestational day.
+  static const pregnancyDailyBase = 10000;
+  static const maxPregnancyDays = 281;
 
-  static const trimester2Id = 201;
-  static const trimester3Id = 202;
-  static const edd14Id = 301;
-  static const edd7Id = 302;
-  static const edd1Id = 303;
-  static const edd0Id = 304;
-  static const babyWeek1Id = 501;
-  static const babyMonth1Id = 502;
-  static const babyMonth2Id = 503;
-  static const babyMonth6Id = 504;
-  static const babyMonth12Id = 505;
+  /// Daily discover tip: id = [discoverDailyBase] + offset from today (0..89).
+  static const discoverDailyBase = 13000;
+  static const discoverHorizonDays = 90;
 
-  /// Id used by android_alarm_manager_plus for the daily reschedule alarm.
-  /// `rescheduleOnReboot: true` makes the plugin re-arm this alarm (and run
-  /// [_backgroundRescheduleCallback] again) automatically after the device
-  /// restarts, which in turn re-schedules every flutter_local_notifications
-  /// alarm above.
+  /// Daily baby notifications: id = [babyDailyBase] + days since birth.
+  static const babyDailyBase = 14000;
+  static const maxBabyDays = 730;
+
   static const rebootAlarmId = 9001;
+  static const previewNotificationId = 88888;
+
+  static const _channels = [
+    'pregnancy_daily',
+    'baby_daily',
+    'discover_daily',
+  ];
+
+  static const _morningHour = 9;
+  static const _tipHour = 10;
+  static const _tipMinute = 30;
 
   static Future<void> init() async {
     if (_ready) return;
     tz_data.initializeTimeZones();
+    try {
+      final tzName = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(tzName));
+    } catch (_) {
+      // Fall back to UTC if the device timezone cannot be resolved.
+    }
 
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const ios = DarwinInitializationSettings();
+    const ios = DarwinInitializationSettings(
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
+    );
     await _plugin.initialize(
       const InitializationSettings(android: android, iOS: ios),
     );
 
+    await _createAndroidChannels();
     _ready = true;
   }
 
-  /// Safe post-launch setup: permissions + rescheduling must not block app open.
-  ///
-  /// Runs on every app start, including the first launch after a reinstall —
-  /// [AppState.load] reads any pregnancy/baby data still present in
-  /// SharedPreferences and [rescheduleAll] re-creates every OS-level alarm
-  /// from that data (the alarms themselves do not survive an uninstall, but
-  /// the data does if the user restores from the same SharedPreferences
-  /// store / app backup).
+  static Future<void> _createAndroidChannels() async {
+    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (androidPlugin == null) return;
+
+    final lang = langNotifier.value;
+    final channelName = LS.get(lang, 'notificationsSetting');
+    final channelDesc = LS.get(lang, 'notificationsDesc');
+
+    for (final id in _channels) {
+      await androidPlugin.createNotificationChannel(
+        AndroidNotificationChannel(
+          id,
+          channelName,
+          description: channelDesc,
+          importance: Importance.high,
+          playSound: true,
+          enableVibration: true,
+          showBadge: true,
+        ),
+      );
+    }
+  }
+
+  static NotificationDetails _details(String channelId, AppLang lang) {
+    return NotificationDetails(
+      android: AndroidNotificationDetails(
+        channelId,
+        LS.get(lang, 'notificationsSetting'),
+        channelDescription: LS.get(lang, 'notificationsDesc'),
+        importance: Importance.high,
+        priority: Priority.high,
+        playSound: true,
+        enableVibration: true,
+        visibility: NotificationVisibility.public,
+        icon: '@mipmap/ic_launcher',
+        showWhen: true,
+        ticker: LS.get(lang, 'notificationsSetting'),
+      ),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+  }
+
   static Future<void> startup(AppState state) async {
+    await init();
     try {
-      await init();
-      await requestPermissions();
       await rescheduleAll(state);
       await _registerBackgroundReschedule();
     } catch (_) {
-      // Keep the app usable even if notifications fail on this device.
+      // Scheduling may fail before permissions are granted; prompt handles that.
     }
+  }
+
+  /// Returns `true` when notifications are allowed on this device.
+  /// Returns `null` on platforms that do not support local notifications.
+  static Future<bool?> areNotificationsEnabled() async {
+    if (!_ready) await init();
+    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (androidPlugin != null) {
+      return androidPlugin.areNotificationsEnabled();
+    }
+    final iosPlugin = _plugin.resolvePlatformSpecificImplementation<
+        IOSFlutterLocalNotificationsPlugin>();
+    if (iosPlugin != null) {
+      final settings = await iosPlugin.checkPermissions();
+      return settings?.isEnabled;
+    }
+    return null;
+  }
+
+  static bool get _isMobilePlatform {
+    return defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS;
+  }
+
+  /// Shows an in-app explanation, then the OS permission sheet.
+  /// Call once the UI is visible (e.g. after splash / on MainShell).
+  static Future<void> maybePromptForPermissions(
+    BuildContext context,
+    AppState state,
+  ) async {
+    if (!_isMobilePlatform) return;
+    if (!context.mounted) return;
+
+    await init();
+
+    final enabled = await areNotificationsEnabled();
+    if (enabled == true) return;
+    if (!context.mounted) return;
+
+    final lang = langNotifier.value;
+    final allow = await showNotificationPermissionDialog(context, lang);
+    if (!allow || !context.mounted) return;
+
+    await requestPermissions();
+    await rescheduleAll(state);
   }
 
   static Future<void> requestPermissions() async {
@@ -79,13 +179,12 @@ class NotificationService {
         AndroidFlutterLocalNotificationsPlugin>();
     await androidPlugin?.requestNotificationsPermission();
     await androidPlugin?.requestExactAlarmsPermission();
+
+    final iosPlugin = _plugin.resolvePlatformSpecificImplementation<
+        IOSFlutterLocalNotificationsPlugin>();
+    await iosPlugin?.requestPermissions(alert: true, badge: true, sound: true);
   }
 
-  /// Registers a recurring background alarm (via android_alarm_manager_plus)
-  /// that re-runs [rescheduleAll]. Because it is registered with
-  /// `rescheduleOnReboot: true`, Android automatically re-arms it after the
-  /// device reboots, which re-schedules all pregnancy/baby notifications even
-  /// if they were lost on restart.
   static Future<void> _registerBackgroundReschedule() async {
     try {
       await AndroidAlarmManager.initialize();
@@ -109,48 +208,47 @@ class NotificationService {
       if (!state.notificationsEnabled) return;
 
       final lang = langNotifier.value;
+      final userName = (await AuthStorage.loadUser())?.name;
+      _cachedUserName = userName;
+      final today = _dateOnly(DateTime.now());
 
-      if (state.hasPregnancyData &&
+      final inPregnancy = state.hasPregnancyData &&
           state.pregnancyRemindersEnabled &&
           state.lnmp != null &&
-          state.edd != null) {
-        await _scheduleWeeklyPregnancyTips(state, lang);
-        await _scheduleTrimesterMilestones(state, lang);
-        await _scheduleEddReminders(state, lang);
+          state.edd != null &&
+          !today.isAfter(state.edd!);
+
+      final afterBirth = state.childBirthDate != null &&
+          !today.isBefore(state.childBirthDate!);
+
+      if (inPregnancy) {
+        await _scheduleDailyPregnancy(state, lang, userName, today);
       }
 
-      if (state.childBirthDate != null) {
-        await _scheduleBabyReminders(state.childBirthDate!, lang);
+      if (afterBirth) {
+        await _scheduleDailyBaby(state.childBirthDate!, lang, userName, today);
       }
+
+      await _scheduleDailyDiscover(
+        lang,
+        userName,
+        today,
+        pregnancyPhase: inPregnancy,
+        babyPhase: afterBirth && !inPregnancy,
+      );
     } catch (_) {
       // Exact alarms or timezone issues should not crash the app.
     }
   }
 
   static Future<void> cancelAll() async {
-    if (!_ready) return;
-    for (final id in [
-      for (var week = 1; week <= maxPregnancyWeeks; week++) weeklyBaseId + week,
-      trimester2Id,
-      trimester3Id,
-      edd14Id,
-      edd7Id,
-      edd1Id,
-      edd0Id,
-      babyWeek1Id,
-      babyMonth1Id,
-      babyMonth2Id,
-      babyMonth6Id,
-      babyMonth12Id,
-    ]) {
-      await _plugin.cancel(id);
-    }
+    if (!_ready) await init();
+    await _plugin.cancelAll();
   }
 
   static Future<void> setEnabled(bool enabled, AppState state) async {
     await state.setNotificationsEnabled(enabled);
     if (enabled) {
-      await requestPermissions();
       await rescheduleAll(state);
     } else {
       await cancelAll();
@@ -171,58 +269,259 @@ class NotificationService {
   }
 
   static List<ScheduledReminderInfo> plannedReminders(AppState state) {
+    return upcomingNotifications(state)
+        .map((n) => ScheduledReminderInfo(n.title, n.subtitle, n.icon))
+        .toList();
+  }
+
+  /// Real upcoming notifications with actual title, body, and fire time.
+  static List<UpcomingNotificationInfo> upcomingNotifications(
+    AppState state,
+  ) {
     final lang = langNotifier.value;
-    final list = <ScheduledReminderInfo>[];
+    final list = <UpcomingNotificationInfo>[];
     if (!state.notificationsEnabled) return list;
 
-    if (state.hasPregnancyData && state.pregnancyRemindersEnabled) {
-      list.add(ScheduledReminderInfo(
-        LS.get(lang, 'reminderWeeklyTitle'),
-        LS.get(lang, 'reminderWeeklyDesc'),
-        Icons.calendar_today_rounded,
+    final today = _dateOnly(DateTime.now());
+    final userName = _cachedUserName;
+
+    final inPregnancy = state.hasPregnancyData &&
+        state.pregnancyRemindersEnabled &&
+        state.lnmp != null &&
+        state.edd != null &&
+        !today.isAfter(state.edd!);
+
+    final afterBirth = state.childBirthDate != null &&
+        !today.isBefore(state.childBirthDate!);
+
+    if (inPregnancy) {
+      final lnmp = state.lnmp!;
+      final gaDay = today.difference(lnmp).inDays.clamp(0, maxPregnancyDays - 1);
+      final content = NotificationContent.pregnancyDay(gaDay, lang, userName);
+      list.add(UpcomingNotificationInfo(
+        title: content.title,
+        body: content.body,
+        subtitle: _formatScheduleTime(today, _morningHour, 0, lang),
+        icon: Icons.pregnant_woman_rounded,
+        scheduledAt: _localDateTime(today, _morningHour, 0),
       ));
-      if (state.edd != null) {
-        for (final days in [14, 7, 1, 0]) {
-          final d = state.edd!.subtract(Duration(days: days));
-          if (!d.isBefore(DateTime.now())) {
-            list.add(ScheduledReminderInfo(
-              days == 0
-                  ? LS.get(lang, 'reminderDueTodayTitle')
-                  : LS.get(lang, 'reminderDueSoonTitle')
-                      .replaceAll('{days}', '$days'),
-              _fmt(d),
-              Icons.event_rounded,
-            ));
-          }
-        }
-      }
     }
 
-    if (state.childBirthDate != null) {
-      final b = state.childBirthDate!;
-      for (final entry in [
-        (7, 'reminderBabyWeekTitle'),
-        (30, 'reminderBabyMonth1Title'),
-        (60, 'reminderBabyMonth2Title'),
-        (180, 'reminderBabyMonth6Title'),
-        (365, 'reminderBabyYear1Title'),
-      ]) {
-        final d = b.add(Duration(days: entry.$1));
-        if (!d.isBefore(DateTime.now())) {
-          list.add(ScheduledReminderInfo(
-            LS.get(lang, entry.$2),
-            _fmt(d),
-            Icons.child_care_rounded,
-          ));
-        }
-      }
+    if (afterBirth) {
+      final birth = state.childBirthDate!;
+      final daysSinceBirth = today.difference(birth).inDays;
+      final content =
+          NotificationContent.babyDay(daysSinceBirth, lang, userName);
+      list.add(UpcomingNotificationInfo(
+        title: content.title,
+        body: content.body,
+        subtitle: _formatScheduleTime(today, _morningHour, 0, lang),
+        icon: Icons.child_care_rounded,
+        scheduledAt: _localDateTime(today, _morningHour, 0),
+      ));
     }
+
+    final absoluteDay = today.difference(DateTime(2024)).inDays;
+    final discover = NotificationContent.discoverTip(
+      absoluteDay,
+      lang,
+      userName,
+      pregnancyPhase: inPregnancy,
+      babyPhase: afterBirth && !inPregnancy,
+    );
+    list.add(UpcomingNotificationInfo(
+      title: discover.title,
+      body: discover.body,
+      subtitle: _formatScheduleTime(today, _tipHour, _tipMinute, lang),
+      icon: Icons.lightbulb_outline_rounded,
+      scheduledAt: _localDateTime(today, _tipHour, _tipMinute),
+    ));
 
     return list;
   }
 
-  static String _fmt(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+  static String? _cachedUserName;
+
+  static Future<void> refreshDisplayCache() async {
+    await _refreshUserName();
+  }
+
+  static Future<void> _refreshUserName() async {
+    _cachedUserName = (await AuthStorage.loadUser())?.name;
+  }
+
+  /// Fires a real OS notification immediately using today's actual content.
+  /// Only for preview — scheduled reminders remain unchanged.
+  static Future<bool> showPreviewNotification(AppState state) async {
+    if (!_isMobilePlatform) return false;
+    if (!_ready) await init();
+
+    var enabled = await areNotificationsEnabled();
+    if (enabled != true) {
+      await requestPermissions();
+      enabled = await areNotificationsEnabled();
+      if (enabled != true) return false;
+    }
+
+    await _refreshUserName();
+    final upcoming = upcomingNotifications(state);
+    if (upcoming.isEmpty) return false;
+
+    final preview = upcoming.first;
+    final channelId = _channelForPreview(state);
+    final lang = langNotifier.value;
+
+    await _plugin.show(
+      previewNotificationId,
+      preview.title,
+      preview.body,
+      _details(channelId, lang),
+    );
+    return true;
+  }
+
+  static String _channelForPreview(AppState state) {
+    final today = _dateOnly(DateTime.now());
+    final inPregnancy = state.hasPregnancyData &&
+        state.pregnancyRemindersEnabled &&
+        state.lnmp != null &&
+        state.edd != null &&
+        !today.isAfter(state.edd!);
+    if (inPregnancy) return 'pregnancy_daily';
+
+    final afterBirth = state.childBirthDate != null &&
+        !today.isBefore(state.childBirthDate!);
+    if (afterBirth) return 'baby_daily';
+
+    return 'discover_daily';
+  }
+
+  static DateTime _localDateTime(DateTime day, int hour, int minute) {
+    final scheduled = _atTime(day, hour, minute);
+    return DateTime(
+      scheduled.year,
+      scheduled.month,
+      scheduled.day,
+      scheduled.hour,
+      scheduled.minute,
+    );
+  }
+
+  static String _formatScheduleTime(
+    DateTime day,
+    int hour,
+    int minute,
+    AppLang lang,
+  ) {
+    final at = _localDateTime(day, hour, minute);
+    final now = DateTime.now();
+    final time =
+        '${at.hour.toString().padLeft(2, '0')}:${at.minute.toString().padLeft(2, '0')}';
+    if (at.isBefore(now)) {
+      return lang == AppLang.amharic
+          ? 'ነገ $time'
+          : lang == AppLang.oromic
+              ? 'Boru $time'
+              : 'Tomorrow $time';
+    }
+    return lang == AppLang.amharic
+        ? 'ዛሬ $time'
+        : lang == AppLang.oromic
+            ? 'Har\'a $time'
+            : 'Today $time';
+  }
+
+  static DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  static Future<void> _scheduleDailyPregnancy(
+    AppState state,
+    AppLang lang,
+    String? userName,
+    DateTime today,
+  ) async {
+    final lnmp = state.lnmp!;
+    final end = state.edd!.isBefore(lnmp.add(const Duration(days: maxPregnancyDays)))
+        ? state.edd!
+        : lnmp.add(const Duration(days: maxPregnancyDays - 1));
+
+    var cursor = today.isBefore(lnmp) ? lnmp : today;
+    while (!cursor.isAfter(end)) {
+      final gaDay = cursor.difference(lnmp).inDays;
+      if (gaDay >= 0 && gaDay < maxPregnancyDays) {
+        final content =
+            NotificationContent.pregnancyDay(gaDay, lang, userName);
+        await _scheduleOneShot(
+          pregnancyDailyBase + gaDay,
+          cursor,
+          _morningHour,
+          content.title,
+          content.body,
+          'pregnancy_daily',
+          lang,
+        );
+      }
+      cursor = cursor.add(const Duration(days: 1));
+    }
+  }
+
+  static Future<void> _scheduleDailyBaby(
+    DateTime birth,
+    AppLang lang,
+    String? userName,
+    DateTime today,
+  ) async {
+    final start = today.isBefore(birth) ? birth : today;
+    final end = birth.add(const Duration(days: maxBabyDays - 1));
+
+    var cursor = start;
+    while (!cursor.isAfter(end)) {
+      final daysSinceBirth = cursor.difference(birth).inDays;
+      if (daysSinceBirth >= 0 && daysSinceBirth < maxBabyDays) {
+        final content =
+            NotificationContent.babyDay(daysSinceBirth, lang, userName);
+        await _scheduleOneShot(
+          babyDailyBase + daysSinceBirth,
+          cursor,
+          _morningHour,
+          content.title,
+          content.body,
+          'baby_daily',
+          lang,
+        );
+      }
+      cursor = cursor.add(const Duration(days: 1));
+    }
+  }
+
+  static Future<void> _scheduleDailyDiscover(
+    AppLang lang,
+    String? userName,
+    DateTime today, {
+    required bool pregnancyPhase,
+    required bool babyPhase,
+  }) async {
+    for (var offset = 0; offset < discoverHorizonDays; offset++) {
+      final date = today.add(Duration(days: offset));
+      final absoluteDay = date.difference(DateTime(2024)).inDays;
+      final content = NotificationContent.discoverTip(
+        absoluteDay,
+        lang,
+        userName,
+        pregnancyPhase: pregnancyPhase,
+        babyPhase: babyPhase,
+      );
+      await _scheduleOneShot(
+        discoverDailyBase + offset,
+        date,
+        _tipHour,
+        content.title,
+        content.body,
+        'discover_daily',
+        lang,
+        minute: _tipMinute,
+      );
+    }
+  }
 
   static Future<void> _zonedSchedule({
     required int id,
@@ -230,7 +529,6 @@ class NotificationService {
     required String body,
     required tz.TZDateTime scheduledDate,
     required NotificationDetails details,
-    DateTimeComponents? matchDateTimeComponents,
   }) async {
     const modes = [
       AndroidScheduleMode.exactAllowWhileIdle,
@@ -247,7 +545,6 @@ class NotificationService {
           androidScheduleMode: mode,
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
-          matchDateTimeComponents: matchDateTimeComponents,
         );
         return;
       } catch (_) {
@@ -256,140 +553,35 @@ class NotificationService {
     }
   }
 
-  /// Schedules one tip notification per gestational week (1..[maxPregnancyWeeks]),
-  /// each firing on the day that week begins (LNMP + week*7 days). Past dates
-  /// are skipped automatically by [_scheduleOneShot].
-  static Future<void> _scheduleWeeklyPregnancyTips(
-      AppState state, AppLang lang) async {
-    final lnmp = state.lnmp!;
-    for (var week = 1; week <= maxPregnancyWeeks; week++) {
-      final wd = WeekRegistry.forWeek(week);
-      final tip = wd.tip[lang] ?? wd.tip[AppLang.english]!;
-      final summary = tip.split('.').first.trim();
-      final date = lnmp.add(Duration(days: week * 7));
-      await _scheduleOneShot(
-        weeklyBaseId + week,
-        date,
-        LS.get(lang, 'reminderWeeklyTitle'),
-        '${LS.get(lang, 'weeksLabel')} $week: $summary.',
-        'pregnancy_weekly',
-        lang,
-      );
-    }
-  }
-
-  static Future<void> _scheduleTrimesterMilestones(
-      AppState state, AppLang lang) async {
-    final lnmp = state.lnmp!;
-    await _scheduleOneShot(
-      trimester2Id,
-      lnmp.add(const Duration(days: 14 * 7)),
-      LS.get(lang, 'reminderTrimester2Title'),
-      LS.get(lang, 'reminderTrimester2Desc'),
-      'pregnancy_milestones',
-      lang,
-    );
-    await _scheduleOneShot(
-      trimester3Id,
-      lnmp.add(const Duration(days: 27 * 7)),
-      LS.get(lang, 'reminderTrimester3Title'),
-      LS.get(lang, 'reminderTrimester3Desc'),
-      'pregnancy_milestones',
-      lang,
-    );
-  }
-
-  static Future<void> _scheduleEddReminders(
-      AppState state, AppLang lang) async {
-    final edd = state.edd!;
-    final items = [
-      (edd14Id, 14, 'reminderDueSoonDesc'),
-      (edd7Id, 7, 'reminderDueSoonDesc'),
-      (edd1Id, 1, 'reminderDueSoonDesc'),
-      (edd0Id, 0, 'reminderDueTodayDesc'),
-    ];
-    for (final item in items) {
-      final when = edd.subtract(Duration(days: item.$2));
-      final title = item.$2 == 0
-          ? LS.get(lang, 'reminderDueTodayTitle')
-          : LS.get(lang, 'reminderDueSoonTitle')
-              .replaceAll('{days}', '${item.$2}');
-      await _scheduleOneShot(
-        item.$1,
-        when,
-        title,
-        LS.get(lang, item.$3),
-        'pregnancy_edd',
-        lang,
-      );
-    }
-  }
-
-  static Future<void> _scheduleBabyReminders(
-      DateTime birth, AppLang lang) async {
-    final items = [
-      (babyWeek1Id, 7, 'reminderBabyWeekTitle', 'reminderBabyWeekDesc'),
-      (babyMonth1Id, 30, 'reminderBabyMonth1Title', 'reminderBabyMonth1Desc'),
-      (babyMonth2Id, 60, 'reminderBabyMonth2Title', 'reminderBabyMonth2Desc'),
-      (babyMonth6Id, 180, 'reminderBabyMonth6Title', 'reminderBabyMonth6Desc'),
-      (babyMonth12Id, 365, 'reminderBabyYear1Title', 'reminderBabyYear1Desc'),
-    ];
-    for (final item in items) {
-      await _scheduleOneShot(
-        item.$1,
-        birth.add(Duration(days: item.$2)),
-        LS.get(lang, item.$3),
-        LS.get(lang, item.$4),
-        'baby_care',
-        lang,
-      );
-    }
-  }
-
   static Future<void> _scheduleOneShot(
     int id,
     DateTime date,
+    int hour,
     String title,
     String body,
     String channelId,
-    AppLang lang,
-  ) async {
-    final scheduled = _at9am(date);
+    AppLang lang, {
+    int minute = 0,
+  }) async {
+    final scheduled = _atTime(date, hour, minute);
     if (scheduled.isBefore(tz.TZDateTime.now(tz.local))) return;
     await _zonedSchedule(
       id: id,
       title: title,
       body: body,
       scheduledDate: scheduled,
-      details: NotificationDetails(
-        android: AndroidNotificationDetails(
-          channelId,
-          LS.get(lang, 'notificationsSetting'),
-          channelDescription: LS.get(lang, 'notificationsDesc'),
-          importance: Importance.high,
-          priority: Priority.high,
-        ),
-        iOS: const DarwinNotificationDetails(),
-      ),
+      details: _details(channelId, lang),
     );
   }
 
-  static tz.TZDateTime _at9am(DateTime d) {
-    final local = tz.TZDateTime(tz.local, d.year, d.month, d.day, 9);
+  static tz.TZDateTime _atTime(DateTime d, int hour, int minute) {
+    final local = tz.TZDateTime(tz.local, d.year, d.month, d.day, hour, minute);
     return local.isBefore(tz.TZDateTime.now(tz.local))
         ? local.add(const Duration(days: 1))
         : local;
   }
 }
 
-/// Entry point for the recurring background alarm registered by
-/// [NotificationService._registerBackgroundReschedule].
-///
-/// android_alarm_manager_plus runs this in its own background isolate, so it
-/// re-initializes the Flutter bindings, reloads [AppState] from
-/// SharedPreferences, and re-schedules every notification. Because the alarm
-/// is registered with `rescheduleOnReboot: true`, this also runs again after
-/// a device restart, restoring all pregnancy/baby notifications.
 @pragma('vm:entry-point')
 void backgroundRescheduleCallback() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -403,4 +595,19 @@ class ScheduledReminderInfo {
   final String subtitle;
   final IconData icon;
   const ScheduledReminderInfo(this.title, this.subtitle, this.icon);
+}
+
+class UpcomingNotificationInfo {
+  final String title;
+  final String body;
+  final String subtitle;
+  final IconData icon;
+  final DateTime scheduledAt;
+  const UpcomingNotificationInfo({
+    required this.title,
+    required this.body,
+    required this.subtitle,
+    required this.icon,
+    required this.scheduledAt,
+  });
 }
