@@ -297,59 +297,42 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   Widget _categoryGrid(BuildContext ctx, AppLang lang) {
     final cats = [
       _CatData(
-          Icons.calendar_month_rounded,
+          AppAssets.pregnancy,
           LS.get(lang, 'pregnancyCalc'),
           LS.get(lang, 'pregnancyCalcSub'),
-          const [C.darkBlue, C.darkBlue],
           () => _navigateTo(ctx, const PregnancyCalculationScreen())),
       _CatData(
-          Icons.pregnant_woman_rounded,
+          AppAssets.mother,
           LS.get(lang, 'duringPregnancy'),
           LS.get(lang, 'duringPregnancySub'),
-          const [C.darkBlue, C.darkBlue],
           () => _navigateTo(ctx, const DuringPregnancyScreen())),
       _CatData(
-          Icons.child_care_rounded,
+          AppAssets.afterPreg,
           LS.get(lang, 'afterBirth'),
           LS.get(lang, 'afterBirthSub'),
-          const [C.darkBlue, C.darkBlue],
           () => _navigateTo(ctx, AfterBirthScreen(
               childBirthDate: appState.childBirthDate))),
       _CatData(
-          Icons.medical_services_rounded,
+          AppAssets.all,
           LS.get(lang, 'talkDoctor'),
           LS.get(lang, 'talkDoctorSub'),
-          const [C.darkBlue, C.darkBlue],
           () => _openDoctorsTab()),
     ];
-    return Column(children: [
-      Row(children: [
-        Expanded(
-            child: SizedBox(
-                height: 116,
-                child: _CatCard(cat: cats[0], delay: Duration.zero))),
-        const SizedBox(width: 12),
-        Expanded(
-            child: SizedBox(
-                height: 116,
-                child: _CatCard(
-                    cat: cats[1], delay: const Duration(milliseconds: 70)))),
-      ]),
-      const SizedBox(height: 12),
-      Row(children: [
-        Expanded(
-            child: SizedBox(
-                height: 116,
-                child: _CatCard(
-                    cat: cats[2], delay: const Duration(milliseconds: 140)))),
-        const SizedBox(width: 12),
-        Expanded(
-            child: SizedBox(
-                height: 116,
-                child: _CatCard(
-                    cat: cats[3], delay: const Duration(milliseconds: 210)))),
-      ]),
-    ]);
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: cats.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.78,
+      ),
+      itemBuilder: (context, i) => _CatCard(
+        cat: cats[i],
+        delay: Duration(milliseconds: i * 70),
+      ),
+    );
   }
 
   void _openDoctorsTab() {
@@ -856,11 +839,10 @@ Widget _bubble(
 // CATEGORY DATA + CARD
 // ─────────────────────────────────────────────────────────────────────────────
 class _CatData {
-  final IconData icon;
+  final String imageAsset;
   final String title, sub;
-  final List<Color> grad;
   final VoidCallback onTap;
-  const _CatData(this.icon, this.title, this.sub, this.grad, this.onTap);
+  const _CatData(this.imageAsset, this.title, this.sub, this.onTap);
 }
 
 class _CatCard extends StatefulWidget {
@@ -915,38 +897,97 @@ class _CatCardState extends State<_CatCard>
               },
               onTapCancel: () => setState(() => _pressed = false),
               child: AnimatedScale(
-                scale: _pressed ? 0.94 : 1.0,
+                scale: _pressed ? 0.97 : 1.0,
                 duration: const Duration(milliseconds: 90),
                 child: Container(
                   decoration: BoxDecoration(
                     color: C.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: C.lightBlue),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: C.border),
+                    boxShadow: [
+                      BoxShadow(
+                        color: C.darkBlue.withValues(alpha: 0.12),
+                        blurRadius: 14,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(widget.cat.icon,
-                              size: 22, color: C.darkBlue),
-                          const SizedBox(height: 5),
-                          Text(widget.cat.title,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w800,
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        flex: 11,
+                        child: Image.asset(
+                          widget.cat.imageAsset,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: C.grayBg,
+                            child: const Center(
+                              child: Icon(Icons.image_outlined,
+                                  color: C.darkBlue, size: 32),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        height: 1,
+                        color: C.border,
+                      ),
+                      Expanded(
+                        flex: 9,
+                        child: Container(
+                          color: C.white,
+                          padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 3,
+                                height: 38,
+                                margin: const EdgeInsets.only(top: 2),
+                                decoration: BoxDecoration(
                                   color: C.darkBlue,
-                                  height: 1.2)),
-                          const SizedBox(height: 2),
-                          Text(widget.cat.sub,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontSize: 11, color: C.textLight)),
-                        ]),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      widget.cat.title,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                        color: C.darkBlue,
+                                        height: 1.2,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      widget.cat.sub,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: C.textLight,
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
