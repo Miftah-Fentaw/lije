@@ -1,11 +1,7 @@
-import 'dart:async';
-
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:lije/features/splash/ui/splash_screen.dart';
-import 'package:lije/core/services/notification_service.dart';
 import 'package:lije/core/l10n/strings.dart';
 import 'package:lije/features/home/models/app_state.dart';
 import 'package:lije/core/theme/colors.dart';
@@ -37,14 +33,6 @@ class LijeApp extends StatefulWidget {
 }
 
 class _LijeAppState extends State<LijeApp> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(NotificationService.startup(appState));
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<AppLang>(
