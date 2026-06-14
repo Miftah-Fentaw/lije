@@ -1,6 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lije/core/l10n/strings.dart';
+import 'package:lije/core/services/notification_service.dart';
+import 'package:lije/features/auth/services/auth_storage.dart';
+import 'package:lije/features/home/models/app_state.dart';
 import 'package:lije/core/theme/colors.dart';
 import 'package:lije/features/discover/ui/discover_tab.dart';
 import 'package:lije/features/doctors/ui/doctors_tab.dart';
@@ -18,6 +23,27 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _idx = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_bootstrap());
+      Future.delayed(const Duration(milliseconds: 700), () {
+        if (!mounted) return;
+        NotificationService.maybePromptForPermissions(context, appState);
+      });
+    });
+  }
+
+  Future<void> _bootstrap() async {
+    final user = await AuthStorage.loadUser();
+    if (user?.supabaseId != null) {
+      await appState.bindUser(user!.supabaseId);
+    }
+    await NotificationService.refreshDisplayCache();
+    await NotificationService.startup(appState);
+  }
 
   void _onTap(int i) {
     if (_idx == i) return;
