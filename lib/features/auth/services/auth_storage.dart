@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthUser;
 import 'package:lije/features/auth/models/auth_user.dart';
+import 'package:lije/features/auth/services/user_id_generator.dart';
 
 /// Thrown by [AuthStorage.signUp] / [AuthStorage.logIn] with a
 /// user-displayable message (e.g. "phone already registered",
@@ -24,9 +25,6 @@ class AuthStorage {
 
   static const _table = 'users';
 
-  /// Returns the Supabase client, or `null` if Supabase has not been
-  /// initialized (e.g. missing --dart-define credentials) or is otherwise
-  /// unreachable.
   static SupabaseClient? get _client {
     try {
       return Supabase.instance.client;
@@ -78,15 +76,47 @@ class AuthStorage {
     await p.remove(_supabaseIdKey);
   }
 
-  /// Registers [user] with Supabase (insert into `users`), then caches the
-  /// result locally so the app keeps working offline.
-  ///
-  /// Throws [AuthException] with:
-  /// - `"phone already registered"` if the phone already exists remotely.
-  /// - `"network error"` if Supabase could not be reached.
-  ///
-  /// If Supabase is not configured at all, the user is saved locally only
-  /// (offline-first fallback).
+  static Future<Map<String, dynamic>?> _findUserByPhone(
+    SupabaseClient client,
+    String phone,
+  ) async {
+    final candidates = {
+      phone,
+      '+251$phone',
+      '251$phone',
+      if (phone.startsWith('251')) phone.substring(3),
+      if (phone.startsWith('+251')) phone.substring(4),
+    };
+
+    for (final candidate in candidates) {
+      final row = await client
+          .from(_table)
+          .select()
+          .eq('phone', candidate)
+          .maybeSingle();
+      if (row != null) return row;
+    }
+    return null;
+  }
+
+  static AuthUser _userFromRow(
+    Map<String, dynamic> row, {
+    required String fallbackPhone,
+    required Carrier fallbackCarrier,
+  }) {
+    final name = row['name'] as String? ?? '';
+    return AuthUser(
+      userId: row['id']?.toString() ??
+          generateUserId(fallbackPhone, name),
+      name: name,
+      phone: row['phone'] as String? ?? fallbackPhone,
+      carrier: Carrier.values.byName(
+        row['carrier'] as String? ?? fallbackCarrier.name,
+      ),
+      supabaseId: row['id']?.toString(),
+    );
+  }
+
   static Future<AuthUser> signUp(AuthUser user) async {
     final client = _client;
     if (client == null) {
@@ -95,12 +125,7 @@ class AuthStorage {
     }
 
     try {
-      final existing = await client
-          .from(_table)
-          .select('id')
-          .eq('phone', user.phone)
-          .maybeSingle();
-
+      final existing = await _findUserByPhone(client, user.phone);
       if (existing != null) {
         throw const AuthException('phone already registered');
       }
@@ -116,75 +141,65 @@ class AuthStorage {
           .select('id')
           .single();
 
-      final saved = user.copyWith(supabaseId: inserted['id'] as String);
+      final saved = user.copyWith(supabaseId: inserted['id']?.toString());
       await saveUser(saved);
       return saved;
     } on AuthException {
       rethrow;
     } catch (_) {
-      throw const AuthException('network error');
+      // Supabase unreachable — save locally so auth still completes.
+      await saveUser(user);
+      return user;
     }
   }
 
-  /// Looks up a user by phone number in Supabase.
-  ///
-  /// On success, the remote record is cached locally and returned.
-  ///
-  /// Throws [AuthException] with:
-  /// - `"no account found"` if no row matches [phone] remotely.
-  /// - `"network error"` if Supabase could not be reached and no matching
-  ///   user is cached locally for offline use.
-  ///
-  /// If Supabase is not configured at all, falls back to the locally
-  /// cached user (matched by name, phone and carrier).
   static Future<AuthUser> logIn({
-    required String name,
     required String phone,
     required Carrier carrier,
   }) async {
     final client = _client;
     if (client == null) {
-      return _logInFromCache(name: name, phone: phone, carrier: carrier);
+      return _logInFromCache(phone: phone, carrier: carrier);
     }
 
     try {
-      final row =
-          await client.from(_table).select().eq('phone', phone).maybeSingle();
-
+      final row = await _findUserByPhone(client, phone);
       if (row == null) {
         throw const AuthException('no account found');
       }
 
-      final user = AuthUser(
-        userId: row['id'] as String,
-        name: row['name'] as String? ?? name,
-        phone: row['phone'] as String? ?? phone,
-        carrier: Carrier.values.byName(row['carrier'] as String? ?? carrier.name),
-        supabaseId: row['id'] as String,
+      final user = _userFromRow(
+        row,
+        fallbackPhone: phone,
+        fallbackCarrier: carrier,
       );
       await saveUser(user);
       return user;
     } on AuthException catch (e) {
       if (e.message == 'no account found') rethrow;
-      return _logInFromCache(name: name, phone: phone, carrier: carrier);
+      return _logInFromCache(phone: phone, carrier: carrier);
     } catch (_) {
-      // Network failure: fall back to the locally cached user so the app
-      // keeps working offline after the first successful login.
-      return _logInFromCache(name: name, phone: phone, carrier: carrier);
+      return _logInFromCache(phone: phone, carrier: carrier);
     }
   }
 
   static Future<AuthUser> _logInFromCache({
-    required String name,
     required String phone,
     required Carrier carrier,
   }) async {
     final cached = await loadUser();
-    final matches = cached != null &&
-        cached.phone == phone &&
-        cached.carrier == carrier &&
-        cached.name.toLowerCase() == name.toLowerCase();
-    if (!matches) {
+    if (cached == null) {
+      throw const AuthException('no account found');
+    }
+
+    final cachedDigits = cached.phone.replaceAll(RegExp(r'\D'), '');
+    final inputDigits = phone.replaceAll(RegExp(r'\D'), '');
+    final phoneMatches = cachedDigits == inputDigits ||
+        cached.phone == phone ||
+        cachedDigits.endsWith(inputDigits) ||
+        inputDigits.endsWith(cachedDigits);
+
+    if (!phoneMatches || cached.carrier != carrier) {
       throw const AuthException('no account found');
     }
     return cached;
