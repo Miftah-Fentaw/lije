@@ -108,7 +108,7 @@ class LS {
       'appPreferences': 'App Preferences',
       'languageSetting': 'Language',
       'notificationsSetting': 'Notifications',
-      'notificationsDesc': 'Pregnancy reminders and app updates',
+      'notificationsDesc': 'Daily pregnancy tips, baby updates & discover insights',
       'settingsGeneral': 'General',
       'settingsLegal': 'Legal & Support',
       'settingsVersion': 'Version',
@@ -239,7 +239,18 @@ class LS {
       'remindersEmpty': 'No reminders scheduled yet.',
       'remindersEmptyHint': 'Calculate your due date and enable reminders.',
       'reminderWeeklyTitle': 'Weekly pregnancy update',
-      'reminderWeeklyDesc': 'Every Sunday at 9:00 AM',
+      'reminderWeeklyDesc': 'Every day at 9:00 AM',
+      'reminderDailyPregnancyTitle': 'Daily pregnancy tip',
+      'reminderDailyPregnancyDesc': 'Every morning at 9:00 AM during pregnancy',
+      'reminderDailyBabyTitle': 'Daily baby update',
+      'reminderDailyBabyDesc': 'Every morning at 9:00 AM after birth',
+      'reminderDailyDiscoverTitle': 'Daily discover tip',
+      'reminderDailyDiscoverDesc': 'Fresh tip from Discover at 10:30 AM',
+      'notifyGreetingGeneric': 'Good morning!',
+      'notifyGreetingNamed': 'Good morning, {name}!',
+      'notifyBabyMilestone': 'Milestone watch',
+      'notifyBabyStage': 'Growth stage',
+      'notifyBabyHealth': 'Health tip',
       'reminderDueSoonTitle': 'Due date in {days} days',
       'reminderDueSoonDesc': 'Prepare for your upcoming delivery.',
       'reminderDueTodayTitle': 'Your due date is today',
@@ -264,7 +275,7 @@ class LS {
       'authSignupTitle': 'Create Your Account',
       'authSignupSubtitle': 'Sign up with your name and phone number',
       'authLoginTitle': 'Welcome Back',
-      'authLoginSubtitle': 'Log in with your name and phone number',
+      'authLoginSubtitle': 'Log in with your phone number',
       'authNameLabel': 'Full Name',
       'authNameHint': 'e.g. Hanna Tesfaye',
       'authPhoneLabel': 'Phone Number',
@@ -282,6 +293,24 @@ class LS {
       'authNoMatch': 'No matching account found. Please sign up.',
       'authPhoneTaken': 'This phone number is already registered. Please log in instead.',
       'authNetworkError': 'Network error. Please check your connection and try again.',
+      'authPhoneConfirmTitle': 'Confirm your number',
+      'authPhoneConfirmBody':
+          'Please make sure this is the correct phone number before continuing.',
+      'authPhoneConfirmYes': 'Yes, continue',
+
+      // ── Notification permission ─────────────────────────────────────────────
+      'notifyPermTitle': 'Stay on track with daily tips',
+      'notifyPermBody':
+          'Lije sends personalized pregnancy updates, baby milestones, and discover tips each day. Allow notifications so you never miss them.',
+      'notifyPermAllow': 'Allow notifications',
+      'notifyPermLater': 'Not now',
+      'notifyPreviewTitle': 'Preview notification',
+      'notifyPreviewSent':
+          'Check your notification panel — a real notification was sent.',
+      'notifyPreviewFailed':
+          'Could not send notification. Enable permissions in Settings.',
+      'remindersScheduledNote':
+          'These are your real scheduled notifications. They appear in your phone notification panel at the listed times.',
     },
 
     // ── አማርኛ ─────────────────────────────────────────────────────────────────
